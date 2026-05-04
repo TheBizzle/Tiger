@@ -11,6 +11,12 @@ This is a Haskell-based implementation of the Tiger (toy) programming language, 
 
 [![Tiger CI](https://github.com/TheBizzle/Tiger/actions/workflows/tiger.yaml/badge.svg)](https://github.com/TheBizzle/Tiger/actions/workflows/tiger.yaml/badge.svg)
 
+## Running
+
+```sh
+stack build && stack exec tiger
+```
+
 ## Testing
 
 ```sh
