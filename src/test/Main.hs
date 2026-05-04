@@ -1,4 +1,4 @@
-module Main (main) where
+module Main(main) where
 
 import Data.Maybe(mapMaybe)
 
@@ -24,8 +24,8 @@ import qualified Data.Text.IO as TIO
 --   Surprise -- on the Disabled list but actually passing; emits a warning
 --                so you know to promote it to Enabled
 --
--- As you work through the book, move tests from 'disabledTests' into
--- 'enabledTests'.  The harness will warn you when a disabled test starts
+-- As you work through the book, move tests from `disabledTests` into
+-- `enabledTests`.  The harness will warn you when a disabled test starts
 -- passing so you never forget to do this.
 --
 -- ADDING YOUR COMPILER PHASES
@@ -34,32 +34,21 @@ import qualified Data.Text.IO as TIO
 -- calls to your lexer, parser, and type-checker.  Each phase has type:
 --
 --   phase :: Text -> Either Text ()    -- Left = error message, Right = ok
---
--- HOW TO RUN
--- ----------
---   cabal test
---
--- The test runner uses Tasty + HUnit.  No external executables are needed.
 
 fixtureDir :: FilePath
 fixtureDir = "test/fixtures/tiger"
 
--- ── Test metadata ───────────────────────────────────────────────────────────
-
--- | Whether a Tiger program is expected to be accepted or rejected by the
---   phase under test.
 data Expectation
-  = ShouldPass                     -- ^ valid Tiger; phase must succeed
-  | ShouldFail { reason :: Text }  -- ^ invalid Tiger; phase must error
+  = ShouldPass
+  | ShouldFail { reason :: Text }
   deriving Show
 
--- | A single test case.
-data TigerTest =
-  TigerTest { testName    :: Text         -- ^ e.g. "test1"
-            , testFile    :: FilePath     -- ^ relative path inside fixtureDir
-            , expectation :: Expectation
-            , notes       :: Text         -- ^ human description of what is being tested
-            }
+data TigerTest
+  = TigerTest { testName    :: Text         -- ^ e.g. "test1"
+              , testFile    :: FilePath     -- ^ relative path inside fixtureDir
+              , expectation :: Expectation
+              , notes       :: Text         -- ^ human description of what is being tested
+              }
   deriving Show
 
 named :: Text -> TigerTest
@@ -82,18 +71,8 @@ fail_ n desc = (named n) { expectation = ShouldFail desc, notes = desc }
 --   • The comments embedded in each .tig file (the authoritative source)
 --   • The pass/fail split documented in course implementations at Duke ECE 553
 --     and elsewhere (tests 1-26 + 42 + 44 + 46 + 47 + 48 pass;
---     tests 27 + 28-41 + 43 + 45 + 49 fail)
+--     tests 27-41 + 43 + 45 + 49 fail)
 --   • Manual inspection of every file via web_fetch during harness construction
---
--- ERRATA NOTE
--- -----------
--- The Appel errata pages (errata98.html and errata99.html) correct errors in
--- the book's prose and ML scaffolding code only.  After inspecting all errata
--- against the numbered test files, no corrections apply to the .tig files.
--- The one errata note that touches a Tiger *program* (page 97, "illegal since
--- g is declared to return no value but its body returns the value f()") refers
--- to an inline prose example, not to any numbered test.  test40.tig already
--- tests the identical rule correctly.
 --
 -- test27 NOTE
 -- -----------
@@ -104,46 +83,43 @@ fail_ n desc = (named n) { expectation = ShouldFail desc, notes = desc }
 
 allTests :: [TigerTest]
 allTests =
-  -- ── Passing tests ────────────────────────────────────────────────────────
-  [ pass "test1"  "array type and array variable"
-  , pass "test2"  "array type, a record type, and a record variable"
-  , pass "test3"  "array, record, and let-expressions"
-  , pass "test4"  "function declaration"
-  , pass "test5"  "procedure declaration"
-  , pass "test6"  "mutually recursive procedures"
-  , pass "test7"  "mutually recursive functions"
-  , pass "test8"  "correct if-expression with no else and unit body"
-  , pass "test9"  "field assignment to a record"
-  , pass "test10" "integer arithmetic"
-  , pass "test11" "additional type and function declarations"
-  , pass "test12" "for-loop"
-  , pass "test13" "comparison of integers"
-  , pass "test14" "mutually recursive types: tree and treelist"
-  , pass "test15" "correct while-loop"
-  , pass "test16" "correct mutual recursion through types"
-  , pass "test17" "accessing outer-scope variable from nested function"
-  , pass "test18" "deep nesting and closures"
-  , pass "test19" "procedure call as statement"
-  , pass "test20" "nil in a well-typed context"
-  , pass "test21" "correct sequence expression"
-  , pass "test22" "type aliases and array of aliases"
-  , pass "test23" "string comparisons"
-  , pass "test24" "empty record and unit-valued expressions"
-  , pass "test25" "break inside for-loop"
-  , pass "test26" "break inside while-loop"
-  , pass "test27" "locals hide globals (shadowing is legal)"
-  , pass "test42" "correct complex declarations: arrays of records, nested field access"
-  , pass "test44" "valid nil initialization and assignment"
-  , pass "test46" "valid record comparisons with nil"
-  , pass "test47" "second type 'a' hides first; legal because of intervening var decl"
-  , pass "test48" "second function 'g' hides first; legal because of intervening type decl"
-  , pass "queens" "8-queens benchmark program"
-  , pass "merge"  "merge-sort benchmark program"
-
-  -- ── Failing tests ────────────────────────────────────────────────────────
+  [ pass  "test1"  "array type and array variable"
+  , pass  "test2"  "array type, a record type, and a record variable"
+  , pass  "test3"  "array, record, and let-expressions"
+  , pass  "test4"  "function declaration"
+  , pass  "test5"  "procedure declaration"
+  , pass  "test6"  "mutually recursive procedures"
+  , pass  "test7"  "mutually recursive functions"
+  , pass  "test8"  "correct if-expression with no else and unit body"
+  , pass  "test9"  "field assignment to a record"
+  , pass  "test10" "integer arithmetic"
+  , pass  "test11" "additional type and function declarations"
+  , pass  "test12" "for-loop"
+  , pass  "test13" "comparison of integers"
+  , pass  "test14" "mutually recursive types: tree and treelist"
+  , pass  "test15" "correct while-loop"
+  , pass  "test16" "correct mutual recursion through types"
+  , pass  "test17" "accessing outer-scope variable from nested function"
+  , pass  "test18" "deep nesting and closures"
+  , pass  "test19" "procedure call as statement"
+  , pass  "test20" "nil in a well-typed context"
+  , pass  "test21" "correct sequence expression"
+  , pass  "test22" "type aliases and array of aliases"
+  , pass  "test23" "string comparisons"
+  , pass  "test24" "empty record and unit-valued expressions"
+  , pass  "test25" "break inside for-loop"
+  , pass  "test26" "break inside while-loop"
+  , pass  "test27" "locals hide globals (shadowing is legal)"
+  , pass  "test42" "correct complex declarations: arrays of records, nested field access"
+  , pass  "test44" "valid nil initialization and assignment"
+  , pass  "test46" "valid record comparisons with nil"
+  , pass  "test47" "second type `a` hides first; legal because of intervening var decl"
+  , pass  "test48" "second function `g` hides first; legal because of intervening type decl"
+  , pass  "queens" "8-queens benchmark program"
+  , pass  "merge"  "merge-sort benchmark program"
   , fail_ "test28" "error: different record types are not compatible"
   , fail_ "test29" "error: different array types are not compatible"
-  , fail_ "test30" "error: type of var does not match type of initialiser"
+  , fail_ "test30" "error: type of var does not match type of initializer"
   , fail_ "test31" "error: type mismatch in addition operands"
   , fail_ "test32" "error: then and else clauses have different types"
   , fail_ "test33" "error: then clause must produce no value when else is absent"
@@ -162,19 +138,16 @@ allTests =
 
 -- ── Progressive enable / disable ─────────────────────────────────────────────
 --
--- Move test names from 'disabledTests' into 'enabledTests' as you implement
+-- Move test names from `disabledTests` into `enabledTests` as you implement
 -- each compiler phase.  The harness skips disabled tests, but warns you when
 -- a disabled test starts passing unexpectedly.
 --
 -- INITIAL STATE
 -- All tests are disabled.  Promote them in roughly book-chapter order:
 --
---   Chapter 2  (Lexer):       all tests lex-cleanly (lexer doesn't enforce
---                              type rules, so promoting here means "lexes OK")
---   Chapter 3  (Parser):      all tests except test49 parse; test49 is a
---                              syntax error you can enable once parser exists
---   Chapter 5  (Typechecker): the failing tests (test28–test41, test43,
---                              test45, test49) become meaningful
+--   Chapter 2  (Lexer):       all tests lex-cleanly (lexer doesn't enforce type rules, so promoting here means "lexes OK")
+--   Chapter 3  (Parser):      all tests except test49 parse; test49 is a syntax error you can enable once parser exists
+--   Chapter 5  (Typechecker): the failing tests (test28–test41, test43, test45, test49) become meaningful
 
 enabledTests :: [Text]
 enabledTests =
@@ -193,16 +166,15 @@ disabledTests = map testName allTests
 --   Left message  -- phase failed with this error message
 
 runLexer :: Text -> Either Text ()
-runLexer _src = Left "lexer not yet implemented"
+runLexer _src = Left "Lexer not yet implemented"
 
 runParser :: Text -> Either Text ()
-runParser _src = Left "parser not yet implemented"
+runParser _src = Left "Parser not yet implemented"
 
 runTypeChecker :: Text -> Either Text ()
-runTypeChecker _src = Left "type-checker not yet implemented"
+runTypeChecker _src = Left "Typechecker not yet implemented"
 
--- | The phase under test.  Point this at whichever phase you are currently
---   working on.  When you move to the next phase, switch the binding.
+-- Point this at whichever phase you are currently working on
 runPhase :: Text -> Either Text ()
 runPhase = runLexer
 -- runPhase = runParser
@@ -211,103 +183,96 @@ runPhase = runLexer
 -- ── Harness internals ─────────────────────────────────────────────────────────
 
 data TestStatus
-  = NotFound                    -- fixture file missing
-  | Enabled  TigerTest          -- in enabledTests
-  | Disabled TigerTest          -- in disabledTests
-  | Uncategorised TigerTest     -- in allTests but missing from both lists
+  = NotFound                -- fixture file missing
+  | Enabled       TigerTest -- in enabledTests
+  | Disabled      TigerTest -- in disabledTests
+  | Uncategorized TigerTest -- in allTests but missing from both lists
   deriving (Show)
 
-categorise :: TigerTest -> TestStatus
-categorise t
-  | n `elem` enabledTests   = Enabled t
-  | n `elem` disabledTests  = Disabled t
-  | otherwise               = Uncategorised t
-  where n = testName t
+categorize :: TigerTest -> TestStatus
+categorize t | n `elem` enabledTests  = Enabled t
+             | n `elem` disabledTests = Disabled t
+             | otherwise              = Uncategorized t
+  where
+    n = testName t
 
--- | Build the Tasty test tree.
 buildTests :: IO TestTree
-buildTests = do
-  let cats = map categorise allTests
-
-  -- Collect results for disabled tests so we can detect surprises.
-  surprises <- mapMaybe id <$> mapM checkDisabled cats
-
-  return $ testGroup "Tiger"
-    [ testGroup "enabled" $ map makeEnabled (mapMaybe onlyEnabled cats)
-    , testGroup "surprises (disabled tests that are now passing — promote them!)"
-        $ map makeSurprise surprises
-    , testGroup "uncategorised"
-        $ map makeUncategorised (mapMaybe onlyUncategorised cats)
-    ]
+buildTests =
+  do
+    let cats      = map categorize allTests
+    surprs       <- mapMaybe id <$> mapM checkDisabled cats
+    let supDesc   = "surprises (disabled tests that should be enabled!)"
+    let enableds  = testGroup "enabled"       $ map makeEnabled       $ mapMaybe onlyEnabled cats
+    let surprises = testGroup supDesc         $ map makeSurprise        surprs
+    let uncats    = testGroup "uncategorized" $ map makeUncategorized $ mapMaybe onlyUncategorized cats
+    let group     = testGroup "Tiger" [enableds, surprises, uncats]
+    return group
 
 onlyEnabled :: TestStatus -> Maybe TigerTest
 onlyEnabled (Enabled t) = Just t
 onlyEnabled _           = Nothing
 
-onlyUncategorised :: TestStatus -> Maybe TigerTest
-onlyUncategorised (Uncategorised t) = Just t
-onlyUncategorised _                 = Nothing
+onlyUncategorized :: TestStatus -> Maybe TigerTest
+onlyUncategorized (Uncategorized t) = Just t
+onlyUncategorized _                 = Nothing
 
--- | For a disabled test, silently run the phase.  If it passes when it
---   shouldn't (or vice-versa), flag it as a surprise.
+-- Silently runs the phase.  If it passes when it shouldn't (or vice-versa), flags test as surprise.
 checkDisabled :: TestStatus -> IO (Maybe TigerTest)
-checkDisabled (Disabled t) = do
-  let fp = fixtureDir </> testFile t
-  exists <- doesFileExist fp
-  if not exists
-    then return Nothing
-    else do
+checkDisabled NotFound          = return Nothing
+checkDisabled (Enabled       _) = return Nothing
+checkDisabled (Uncategorized _) = return Nothing
+checkDisabled (Disabled      t) =
+  do
+    let fp  = fixtureDir </> testFile t
+    exists <- doesFileExist fp
+    if exists then do
       src <- TIO.readFile fp
-      let result = runPhase src
-      case (result, expectation t) of
-        (Right (), ShouldPass)   -> return (Just t)   -- surprise: passes now
-        (Left _,  ShouldFail {}) -> return (Just t)   -- surprise: fails now
-        _                        -> return Nothing
-checkDisabled _ = return Nothing
+      case (runPhase src, expectation t) of
+        (Right (), ShouldPass   ) -> return $ Just t -- Surprise success
+        (Left   _, ShouldFail {}) -> return $ Just t -- Surprise failure
+        _                          -> return Nothing
+    else
+      return Nothing
 
--- | A test that is in 'enabledTests'.
 makeEnabled :: TigerTest -> TestTree
-makeEnabled t = declareTest (testName t <> ": " <> notes t) $ do
-  let fp = fixtureDir </> testFile t
-  exists <- doesFileExist fp
-  if not exists
-    then assertFail $ "Fixture file not found: " <> (asText fp) <> "\nRun fetch-tiger-tests.sh first."
-    else do
-      src <- TIO.readFile fp
-      let result = runPhase src
-      case (result, expectation t) of
-        (Right (), ShouldPass) ->
-          return ()   -- correct
-        (Left msg, ShouldPass) ->
-          assertFail $ "Expected phase to succeed, but it failed:\n" <> msg
-        (Right (), ShouldFail desc) ->
-          assertFail $ "Expected phase to reject this program (" <> desc
-                        <> "), but it accepted it."
-        (Left _, ShouldFail _) ->
-          return ()   -- correct: we detected the error
-
--- | A disabled test that has started passing — show it as a (named) failure
---   so the developer knows to promote it.
-makeSurprise :: TigerTest -> TestTree
-makeSurprise t = declareTest (testName t <> " [SURPRISE]") $
-  assertFail $ unlines
-    [ "'" <> testName t <> "' is on the disabled list, but it is now "
-      <> outcomeWord <> "."
-    , "Move it from 'disabledTests' to 'enabledTests' in TigerTest.hs."
-    , "Notes: " <> notes t
-    ]
+makeEnabled t = declareTest (testName t <> ": " <> notes t) runIt
   where
-    outcomeWord = case expectation t of
-      ShouldPass   -> "passing"
-      ShouldFail _ -> "failing (i.e. your phase is correctly rejecting it)"
+    runIt =
+      do
+        let path   = fixtureDir </> testFile t
+        exists    <- doesFileExist path
+        if exists then do
+          src <- TIO.readFile path
+          case (runPhase src, expectation t) of
+            (Right (), ShouldPass     ) -> return ()
+            (Left   _, ShouldFail    _) -> return ()
+            (Left msg, ShouldPass     ) -> assertFail $ "Expected phase to succeed, but it failed:\n" <> msg
+            (Right (), ShouldFail desc) -> assertFail $ shouldHaveFailedMsg desc
+        else
+          assertFail $ "Fixture file not found: " <> (asText path)
 
--- | A test that is in allTests but not in either list — the developer forgot
---   to categorise it.
-makeUncategorised :: TigerTest -> TestTree
-makeUncategorised t = declareTest (testName t <> " [UNCATEGORISED]") $
-  assertFail $ "'" <> testName t
-    <> "' is in allTests but not in enabledTests or disabledTests.\n"
-    <> "Add it to one of those lists in TigerTest.hs."
+    shouldHaveFailedMsg desc = "Expected phase to reject this program (" <> desc <> "), but it accepted it."
+
+-- A disabled test that is actually passing
+makeSurprise :: TigerTest -> TestTree
+makeSurprise t = declareTest (testName t <> " [SURPRISE]") $ assertFail msg
+  where
+    msg =
+      "`" <> (testName t) <> "` is on the disabled list, but it is now " <> outcome <> ".\n" <>
+      "Move it from `disabledTests` to `enabledTests` in `TigerTest.hs`.\n" <>
+      "Notes: " <> (notes t)
+
+    outcome =
+      case expectation t of
+        ShouldPass     -> "passing"
+        (ShouldFail _) -> "failing"
+
+-- A test that is in `allTests` but not in either list (meaning: I forgot to categorize it)
+makeUncategorized :: TigerTest -> TestTree
+makeUncategorized t = declareTest (testName t <> " [UNCATEGORIZED]") $ assertFail msg
+  where
+    msg = "`" <> (testName t) <> "` is in `allTests` but not in `enabledTests` or `disabledTests`.\n" <>
+          "Add it to one of those lists in `TigerTest.hs`."
 
 assertFail :: HasCallStack => Text -> IO a
 assertFail = asString &> assertFailure
