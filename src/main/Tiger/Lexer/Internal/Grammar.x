@@ -27,46 +27,46 @@ tokens :-
   <comment> .        ;
   <comment> \n       ;
 
-  "&"                        { make $ const And           }
-  "array"                    { make $ const Array         }
-  ":="                       { make $ const Assign        }
-  "break"                    { make $ const Break         }
-  ":"                        { make $ const Colon         }
-  ","                        { make $ const Comma         }
-  "/"                        { make $ const Divide        }
-  "do"                       { make $ const Do            }
-  "."                        { make $ const Dot           }
-  "else"                     { make $ const Else          }
-  "end"                      { make $ const End           }
-  "="                        { make $ const Equals        }
-  "for"                      { make $ const For           }
-  "function"                 { make $ const Function      }
-  ">="                       { make $ const GreaterEquals }
-  ">"                        { make $ const GreaterThan   }
-  "if"                       { make $ const If            }
-  "in"                       { make $ const In            }
-  "{"                        { make $ const LeftBrace     }
-  "["                        { make $ const LeftBracket   }
-  "("                        { make $ const LeftParen     }
-  "<="                       { make $ const LessEquals    }
-  "<"                        { make $ const LessThan      }
-  "let"                      { make $ const Let           }
-  "-"                        { make $ const Minus         }
-  "*"                        { make $ const Multiply      }
-  "nil"                      { make $ const Nil           }
-  "<>"                       { make $ const NotEquals     }
-  "of"                       { make $ const Of            }
-  "|"                        { make $ const Or            }
-  "+"                        { make $ const Plus          }
-  "}"                        { make $ const RightBrace    }
-  "]"                        { make $ const RightBracket  }
-  ")"                        { make $ const RightParen    }
-  ";"                        { make $ const Semicolon     }
-  "then"                     { make $ const Then          }
-  "to"                       { make $ const To            }
-  "type"                     { make $ const Type          }
-  "var"                      { make $ const Var           }
-  "while"                    { make $ const While         }
+  "&"                        { simplyMake And           }
+  "array"                    { simplyMake Array         }
+  ":="                       { simplyMake Assign        }
+  "break"                    { simplyMake Break         }
+  ":"                        { simplyMake Colon         }
+  ","                        { simplyMake Comma         }
+  "/"                        { simplyMake Divide        }
+  "do"                       { simplyMake Do            }
+  "."                        { simplyMake Dot           }
+  "else"                     { simplyMake Else          }
+  "end"                      { simplyMake End           }
+  "="                        { simplyMake Equals        }
+  "for"                      { simplyMake For           }
+  "function"                 { simplyMake Function      }
+  ">="                       { simplyMake GreaterEquals }
+  ">"                        { simplyMake GreaterThan   }
+  "if"                       { simplyMake If            }
+  "in"                       { simplyMake In            }
+  "{"                        { simplyMake LeftBrace     }
+  "["                        { simplyMake LeftBracket   }
+  "("                        { simplyMake LeftParen     }
+  "<="                       { simplyMake LessEquals    }
+  "<"                        { simplyMake LessThan      }
+  "let"                      { simplyMake Let           }
+  "-"                        { simplyMake Minus         }
+  "*"                        { simplyMake Multiply      }
+  "nil"                      { simplyMake Nil           }
+  "<>"                       { simplyMake NotEquals     }
+  "of"                       { simplyMake Of            }
+  "|"                        { simplyMake Or            }
+  "+"                        { simplyMake Plus          }
+  "}"                        { simplyMake RightBrace    }
+  "]"                        { simplyMake RightBracket  }
+  ")"                        { simplyMake RightParen    }
+  ";"                        { simplyMake Semicolon     }
+  "then"                     { simplyMake Then          }
+  "to"                       { simplyMake To            }
+  "type"                     { simplyMake Type          }
+  "var"                      { simplyMake Var           }
+  "while"                    { simplyMake While         }
 
   $digit+                    { make $ Int . read . asString }
   $alpha [$alpha $digit \_]* { make Identifier }
@@ -82,11 +82,11 @@ tokens :-
   <str> \\[0-9]{3}   { addDecimalEscape }
   <str> \\$white+\\  ;
 
-{data AlexUserState = AlexUserState
-  { stringBuffer :: [Text]
-  , stringLoc    :: Maybe SourceLoc
-  , commentDepth :: Word
-  }
+{data AlexUserState =
+  AlexUserState { stringBuffer :: [Text]
+                , stringLoc    :: Maybe SourceLoc
+                , commentDepth :: Word
+                }
 
 alexInitUserState :: AlexUserState
 alexInitUserState =
@@ -109,15 +109,14 @@ alexScanTokens input =
 startString :: AlexInput -> b -> Alex Token
 startString (AlexPn _ line col, _, _, _) _ =
   do
-    let loc = srcLocFrom line col
-    initStringBuffer loc
+    initStringBuffer $ srcLocFrom line col
     alexSetStartCode str
     alexMonadScan
 
 addToString :: (a, b, c, String) -> Int -> Alex Token
-addToString (_, _, _, s) len =
+addToString (_, _, _, str) len =
   do
-    appendStringBuffer $ Text.take len $ asText s
+    appendStringBuffer $ Text.take len $ asText str
     alexMonadScan
 
 endString :: a -> b -> Alex Token
@@ -135,41 +134,41 @@ addEscape c _ _ =
     alexMonadScan
 
 addControlEscape :: AlexInput -> Int -> Alex Token
-addControlEscape (_, _, _, s) len =
+addControlEscape (_, _, _, str) len =
   do
-    let c = toEnum $ fromEnum (s !! (len - 1)) - fromEnum '@'
+    let c = toEnum $ fromEnum (str !! (len - 1)) - fromEnum '@'
     appendStringBuffer $ Text.singleton c
     alexMonadScan
 
 addDecimalEscape :: AlexInput -> Int -> Alex Token
-addDecimalEscape (_, _, _, s) len =
+addDecimalEscape (_, _, _, str) len =
   do
-    let t = asText s
-    let n = read (asString $ Text.take (len - 1) $ Text.drop 1 t) :: Int
+    let n = read (asString $ Text.take (len - 1) $ Text.drop 1 $ asText str) :: Int
     appendStringBuffer $ Text.singleton $ toEnum n
     alexMonadScan
 
 getString :: Alex (Text, SourceLoc)
-getString =
-  Alex $ \s ->
-    Right (
-      s
-    , (Text.concat $ reverse $ (alex_ust s).stringBuffer, Maybe.fromJust (alex_ust s).stringLoc)
-    )
+getString = Alex $ \state -> Right (state, (buildStr state, buildSLoc state))
+  where
+    buildStr  state = Text.concat $ reverse $ (alex_ust state).stringBuffer
+    buildSLoc state = Maybe.fromJust (alex_ust state).stringLoc
 
 initStringBuffer :: SourceLoc -> Alex ()
-initStringBuffer loc =
-  Alex $ \s ->
-    Right (s {
-      alex_ust = (alex_ust s) {
-        stringBuffer = []
-      , stringLoc    = Just loc
+initStringBuffer loc = Alex $ \state -> Right (update state, ())
+  where
+    update state =
+      state {
+        alex_ust = (alex_ust state) {
+          stringBuffer = []
+        , stringLoc    = Just loc
+        }
       }
-    }, ())
 
 appendStringBuffer :: Text -> Alex ()
-appendStringBuffer x =
-  Alex $ \s -> Right (s { alex_ust = (alex_ust s) { stringBuffer = x:((alex_ust s).stringBuffer) } }, ())
+appendStringBuffer x = Alex $ \state -> Right (update state, ())
+  where
+    appendTo state = x:((alex_ust state).stringBuffer)
+    update state   = state { alex_ust = (alex_ust state) { stringBuffer = appendTo state } }
 
 startComment :: AlexInput -> Int -> Alex Token
 startComment _ _ =
@@ -192,17 +191,22 @@ endComment _ _ =
     alexMonadScan
 
 getCommentDepth :: Alex Word
-getCommentDepth = Alex $ \s -> Right (s, commentDepth $ alex_ust s)
+getCommentDepth = Alex $ \state -> Right (state, commentDepth $ alex_ust state)
 
 setCommentDepth :: Word -> Alex ()
-setCommentDepth d = Alex $ \s -> Right (s { alex_ust = (alex_ust s) { commentDepth = d } }, ())
+setCommentDepth d = Alex $ \state -> Right (update state, ())
+  where
+    update state = state { alex_ust = (alex_ust state) { commentDepth = d } }
 
 make :: (Text -> TokenType) -> AlexInput -> Int -> Alex Token
-make transform (AlexPn _ line col, _, _, s) len =
+make transform (AlexPn _ line col, _, _, str) len =
   do
+    let typ       = transform $ asText $ take len str
     let sourceLoc = srcLocFrom line col
-    let typ       = transform $ asText $ take len s
     return $ Token typ sourceLoc
+
+simplyMake :: TokenType -> AlexInput -> Int -> Alex Token
+simplyMake typ input len = make (const typ) input len
 
 srcLocFrom :: Int -> Int -> SourceLoc
 srcLocFrom line column = SourceLoc "" (fromIntegral line) (fromIntegral column)
@@ -211,6 +215,6 @@ alexEOF :: Alex Token
 alexEOF =
   do
     (AlexPn _ line col, _, _, _) <- alexGetInput
-    return $ Token EOF (srcLocFrom line col)
+    return $ Token EOF $ srcLocFrom line col
 
 }

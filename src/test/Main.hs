@@ -292,4 +292,4 @@ declareTest :: Text -> Assertion -> TestTree
 declareTest = asString &> testCase
 
 main :: IO ()
-main = defaultMain =<< buildTests
+main = buildTests >>= defaultMain
