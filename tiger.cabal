@@ -47,6 +47,7 @@ Library
   Exposed-Modules:
     Tiger.Compiler
     Tiger.Lexer.Lexer
+    Tiger.Lexer.Token
   Other-Modules:
     Tiger.Lexer.Internal.Grammar
     Tiger.Lexer.Internal.Lexer

@@ -9,7 +9,7 @@ import System.FilePath((</>))
 import Test.Tasty(TestTree, defaultMain, testGroup)
 import Test.Tasty.HUnit(assertFailure, Assertion, HasCallStack, testCase)
 
-import Tiger.Lexer.Lexer(lex)
+import Tiger.Compiler(compile)
 
 import qualified Data.Text.IO as TIO
 
@@ -166,27 +166,8 @@ enabledTests =
 disabledTests :: [Text]
 disabledTests = map testName allTests
 
--- ── Compiler phase stubs ─────────────────────────────────────────────────────
---
--- Replace these with your real implementations.
--- Each function takes the raw source text and returns:
---   Right ()      -- phase succeeded
---   Left message  -- phase failed with this error message
-
-runLexer :: Text -> Either Text ()
-runLexer = lex
-
-runParser :: Text -> Either Text ()
-runParser _src = Left "Parser not yet implemented"
-
-runTypeChecker :: Text -> Either Text ()
-runTypeChecker _src = Left "Typechecker not yet implemented"
-
--- Point this at whichever phase you are currently working on
-runPhase :: Text -> Either Text ()
-runPhase = runLexer
--- runPhase = runParser
--- runPhase = runTypeChecker
+runPhases :: Text -> Either Text ()
+runPhases = compile &> (validation (showText &> Left) $ \_ -> traceShow "" $ Right ())
 
 -- ── Harness internals ─────────────────────────────────────────────────────────
 
@@ -235,7 +216,7 @@ checkDisabled (Disabled      t) =
     exists <- doesFileExist fp
     if exists then do
       src <- TIO.readFile fp
-      case (runPhase src, expectation t) of
+      case (runPhases src, expectation t) of
         (Right (), ShouldPass  ) -> return $ Just t -- Surprise success
         (Left   _, ShouldFail _) -> return $ Just t -- Surprise failure
         (       _, ShouldSkip _) -> return Nothing
@@ -252,7 +233,7 @@ makeEnabled t = declareTest (testName t <> ": " <> notes t) runIt
         exists    <- doesFileExist path
         if exists then do
           src <- TIO.readFile path
-          case (runPhase src, expectation t) of
+          case (runPhases src, expectation t) of
             (Right (), ShouldPass     ) -> return ()
             (Left   _, ShouldFail    _) -> return ()
             (       _, ShouldSkip    _) -> return ()
