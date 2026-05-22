@@ -64,8 +64,8 @@ named n = TigerTest
 pass :: Text -> Text -> TigerTest
 pass n desc = (named n) { expectation = ShouldPass, notes = desc }
 
-fail_ :: Text -> Text -> TigerTest
-fail_ n desc = (named n) { expectation = ShouldFail desc, notes = desc }
+fail :: Text -> Text -> TigerTest
+fail n desc = (named n) { expectation = ShouldFail desc, notes = desc }
 
 skip :: Text -> Text -> TigerTest
 skip n desc = (named n) { expectation = ShouldSkip desc, notes = desc }
@@ -138,7 +138,7 @@ allTests =
   , skip  "test41" "error: local variable used outside its scope"
   , skip  "test43" "error: unit value used in arithmetic"
   , skip  "test45" "error: nil not constrained by a record type"
-  , skip  "test49" "error: syntax error — nil preceded by type-id"
+  , fail  "test49" "error: syntax error — nil preceded by type-id"
   ]
 
 -- ── Progressive enable / disable ─────────────────────────────────────────────
@@ -167,7 +167,7 @@ disabledTests :: [Text]
 disabledTests = map testName allTests
 
 runPhases :: Text -> Either Text ()
-runPhases = compile &> (validation (showText &> Left) $ \_ -> traceShow "" $ Right ())
+runPhases = compile &> (validation (showText &> Left) $ \ast -> traceShow "" $ Right ())
 
 -- ── Harness internals ─────────────────────────────────────────────────────────
 
