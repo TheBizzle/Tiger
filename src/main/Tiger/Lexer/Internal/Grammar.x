@@ -27,49 +27,49 @@ tokens :-
   <comment> .        ;
   <comment> \n       ;
 
-  "&"                        { simplyMake And           }
-  "array"                    { simplyMake Array         }
-  ":="                       { simplyMake Assign        }
-  "break"                    { simplyMake Break         }
-  ":"                        { simplyMake Colon         }
-  ","                        { simplyMake Comma         }
-  "/"                        { simplyMake Divide        }
-  "do"                       { simplyMake Do            }
-  "."                        { simplyMake Dot           }
-  "else"                     { simplyMake Else          }
-  "end"                      { simplyMake End           }
-  "="                        { simplyMake Equals        }
-  "for"                      { simplyMake For           }
-  "function"                 { simplyMake Function      }
-  ">="                       { simplyMake GreaterEquals }
-  ">"                        { simplyMake GreaterThan   }
-  "if"                       { simplyMake If            }
-  "in"                       { simplyMake In            }
-  "{"                        { simplyMake LeftBrace     }
-  "["                        { simplyMake LeftBracket   }
-  "("                        { simplyMake LeftParen     }
-  "<="                       { simplyMake LessEquals    }
-  "<"                        { simplyMake LessThan      }
-  "let"                      { simplyMake Let           }
-  "-"                        { simplyMake Minus         }
-  "*"                        { simplyMake Multiply      }
-  "nil"                      { simplyMake Nil           }
-  "<>"                       { simplyMake NotEquals     }
-  "of"                       { simplyMake Of            }
-  "|"                        { simplyMake Or            }
-  "+"                        { simplyMake Plus          }
-  "}"                        { simplyMake RightBrace    }
-  "]"                        { simplyMake RightBracket  }
-  ")"                        { simplyMake RightParen    }
-  ";"                        { simplyMake Semicolon     }
-  "then"                     { simplyMake Then          }
-  "to"                       { simplyMake To            }
-  "type"                     { simplyMake Type          }
-  "var"                      { simplyMake Var           }
-  "while"                    { simplyMake While         }
+  <0> "&"           { simplyMake And           }
+  <0> "array"       { simplyMake Array         }
+  <0> ":="          { simplyMake Assign        }
+  <0> "break"       { simplyMake Break         }
+  <0> ":"           { simplyMake Colon         }
+  <0> ","           { simplyMake Comma         }
+  <0> "/"           { simplyMake Divide        }
+  <0> "do"          { simplyMake Do            }
+  <0> "."           { simplyMake Dot           }
+  <0> "else"        { simplyMake Else          }
+  <0> "end"         { simplyMake End           }
+  <0> "="           { simplyMake Equals        }
+  <0> "for"         { simplyMake For           }
+  <0> "function"    { simplyMake Function      }
+  <0> ">="          { simplyMake GreaterEquals }
+  <0> ">"           { simplyMake GreaterThan   }
+  <0> "if"          { simplyMake If            }
+  <0> "in"          { simplyMake In            }
+  <0> "{"           { simplyMake LeftBrace     }
+  <0> "["           { simplyMake LeftBracket   }
+  <0> "("           { simplyMake LeftParen     }
+  <0> "<="          { simplyMake LessEquals    }
+  <0> "<"           { simplyMake LessThan      }
+  <0> "let"         { simplyMake Let           }
+  <0> "-"           { simplyMake Minus         }
+  <0> "*"           { simplyMake Multiply      }
+  <0> "nil"         { simplyMake Nil           }
+  <0> "<>"          { simplyMake NotEquals     }
+  <0> "of"          { simplyMake Of            }
+  <0> "|"           { simplyMake Or            }
+  <0> "+"           { simplyMake Plus          }
+  <0> "}"           { simplyMake RightBrace    }
+  <0> "]"           { simplyMake RightBracket  }
+  <0> ")"           { simplyMake RightParen    }
+  <0> ";"           { simplyMake Semicolon     }
+  <0> "then"        { simplyMake Then          }
+  <0> "to"          { simplyMake To            }
+  <0> "type"        { simplyMake Type          }
+  <0> "var"         { simplyMake Var           }
+  <0> "while"       { simplyMake While         }
 
-  $digit+                    { make $ Int . read . asString }
-  $alpha [$alpha $digit \_]* { make Identifier }
+  <0> $digit+                        { make $ Int . read . asString }
+  <0> $alpha [$alpha $digit \_]*     { make Identifier }
 
   <0>   \"           { startString }
   <str> [^\"\\]+     { addToString }
