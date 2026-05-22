@@ -71,16 +71,16 @@ tokens :-
   <0> $digit+                        { make $ Int . read . asString }
   <0> $alpha [$alpha $digit \_]*     { make Identifier }
 
-  <0>   \"           { startString }
-  <str> [^\"\\]+     { addToString }
-  <str> \"           { endString   }
-  <str> \\n          { addEscape '\n' }
-  <str> \\t          { addEscape '\t' }
-  <str> \\\\         { addEscape '\\' }
-  <str> \\\"         { addEscape '"'  }
-  <str> \\\^[@-_]    { addControlEscape }
-  <str> \\[0-9]{3}   { addDecimalEscape }
-  <str> \\$white+\\  ;
+  <0>   \"             { startString }
+  <str> [^\"\\]+       { addToString }
+  <str> \"             { endString   }
+  <str> \\n            { addEscape '\n' }
+  <str> \\t            { addEscape '\t' }
+  <str> \\\\           { addEscape '\\' }
+  <str> \\\"           { addEscape '"'  }
+  <str> \\\^[@-_]      { addControlEscape }
+  <str> \\[0-9]{3}     { addDecimalEscape }
+  <str> \\$white+\\    ;
 
 {data AlexUserState =
   AlexUserState { stringBuffer :: [Text]
