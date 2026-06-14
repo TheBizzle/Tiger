@@ -1,0 +1,7 @@
+let
+  type apples  = int
+  type oranges = { y: int }
+  var x := apples { y = 3 }
+in
+  x
+end

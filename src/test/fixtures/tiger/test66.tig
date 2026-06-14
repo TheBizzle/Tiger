@@ -1,0 +1,6 @@
+let
+  type b = a
+  type a = { x: b }
+in
+  ""
+end

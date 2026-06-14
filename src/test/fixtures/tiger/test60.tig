@@ -1,0 +1,6 @@
+(
+  for i := 0 to 100 do (break;());
+  for i := 0 to 100 do break;
+  while (10 > 5) do break;
+  while (10 > 5) do (break;())
+)

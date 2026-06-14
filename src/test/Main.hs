@@ -113,6 +113,23 @@ allTests =
   , pass  "test47" "Valid redeclaration of type in different sequence"                               $ Just $ TInt 0
   , pass  "test48" "Valid redeclaration of function in different sequence"                           $ Just $ TInt 0
   , fail  "test49" "Error: Syntax error on `rectype nil`"                                            $ (PError BadSyntax) :| [PError Aborted]
+  , pass  "test50" "Referencing record type param"                                                   $ Just $ TInt 0
+  , pass  "test51" "Reference `for` variable"                                                        $ Just $ TUnit
+  , pass  "test52" "`nil` return from `if`+`else` branch"                                            $ Just $ TNil
+  , pass  "test53" "`if`+`else` in function"                                                         $ Just $ TRecord (Map.fromList [("first", TInt 2), ("rest", TNil)]) "list"
+  , fail  "test54" "Error: Variable defined in terms of self"                                        $ (AError $ VarCannotInitInTermsOfSelf) :| []
+  , fail  "test55" "Error: Redundant field in record declaration"                                    $ (AError $ DuplicateFieldInType) :| []
+  , fail  "test56" "Error: Redundant field in record instantiation"                                  $ (AError $ DuplicateFieldInInst) :| []
+  , fail  "test57" "Error: Setting non-existent field in record and extra fields"                    $ (AError $ MissingProperty $ Symbol "first") :| [AError $ NoSuchProperty uid1, AError $ NoSuchProperty uid2, AError $ MissingProperty $ Symbol "first"]
+  , fail  "test58" "Error: Trying to construct record from non-record type"                          $ (AError $ NoSuchRecordType) :| []
+  , fail  "test59" "Error: `break` outside of `while`/`for`"                                         $ (AError $ IllegalBreak) :| []
+  , pass  "test60" "Legal `break`s in `while`/`for`"                                                 $ Just $ TUnit
+  , fail  "test61" "Error: Setting `for` variable"                                                   $ (AError $ CannotSetForVar) :| []
+  , fail  "test62" "Error: `for` with non-`Int` upper bound"                                         $ (AError $ TypeMismatch Type.Int Type.String) :| []
+  , fail  "test63" "Error: `while` with non-`Unit` body"                                             $ (AError $ TypeMismatch Type.Unit Type.Int) :| []
+  , fail  "test64" "Error: `for` with non-`Unit` body"                                               $ (AError $ TypeMismatch Type.Unit Type.Int) :| []
+  , pass  "test65" "Forward type reference in record type"                                           $ Just $ TString ""
+  , pass  "test66" "Forward nominal type reference"                                                  $ Just $ TString ""
   , skip  "queens" "SKIP: 8-queens benchmark program" -- TODO: Enable, once we have a standard library
   , skip  "merge"  "SKIP: merge-sort benchmark program" -- TODO: Enable, once we have a standard library
   ]

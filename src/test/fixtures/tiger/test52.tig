@@ -1,0 +1,10 @@
+let
+  type list = { first: int, rest: list }
+  function readlist(): list =
+    if 0 then
+      list { first = 1, rest = readlist() }
+    else
+      nil
+in
+  readlist()
+end

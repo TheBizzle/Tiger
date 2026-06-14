@@ -1,0 +1,5 @@
+let
+  type x = { a: int }
+in
+  x { a = 4, a = 5 }
+end

@@ -1,0 +1,7 @@
+let
+  type anytype = { anyfield: int }
+  function readint(anyparam: anytype): int =
+    anyparam.anyfield
+in
+  readint(anytype { anyfield = 0 })
+end

@@ -1,0 +1,8 @@
+let
+  type list = { first: int, rest: list }
+  var a := list { rest = nil }
+  var b := list { first = 0, rest = nil, apples = nil }
+  var c := list { frst = 0, rest = nil }
+in
+  a
+end
