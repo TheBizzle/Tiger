@@ -18,7 +18,7 @@ default-extensions:
   - OverloadedStrings
 
 dependencies:
-  - bizzlelude >= 4.20.2.0.2 && < 4.21
+  - bizzlelude >= 4.20.2.0.3 && < 4.21
 
 ghc-options:
   - -Wall
