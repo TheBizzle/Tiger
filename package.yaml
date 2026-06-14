@@ -1,0 +1,64 @@
+name:        tiger
+version:     1.0
+license:     CC0-1.0
+author:      TheBizzle
+maintainer:  TheBizzle
+homepage:    https://github.com/TheBizzle
+category:    Web
+synopsis:    An implementation of the Tiger programming language
+description: An implementation of the Tiger programming language, from Andrew W. Appel's Modern Compiler Implementation in ML
+stability:   Experimental
+
+git: https://github.com/TheBizzle/Tiger.git
+
+language: GHC2024
+
+default-extensions:
+  - OverloadedRecordDot
+  - OverloadedStrings
+
+dependencies:
+  - bizzlelude >= 4.20.2.0.2 && < 4.21
+
+ghc-options:
+  - -Wall
+  - -Wcompat
+  - -Wincomplete-record-updates
+  - -Wincomplete-uni-patterns
+  - -Wmissing-import-lists
+  - -Wredundant-constraints
+  - -fno-warn-name-shadowing
+  - -funbox-strict-fields
+  - -O2
+
+executables:
+  tiger:
+    source-dirs: app
+    main:        Main.hs
+    dependencies:
+      - tiger
+      - text
+
+library:
+  source-dirs: src/main
+  build-tools:
+    - alex:alex   >= 3.5.4 && < 3.6
+    - happy:happy >= 2.1   && < 2.2
+  dependencies:
+    - array        >= 0.5.8 && < 0.6
+    - containers   >= 0.7   && < 0.8
+    - mtl          >= 2.3.1 && < 2.4
+    - text         >= 2.1.3 && < 2.2
+    - transformers >= 0.6.1 && < 0.7
+
+tests:
+  tests:
+    main:        Main.hs
+    source-dirs: src/test
+    dependencies:
+      - directory   >= 1.3.8  && < 1.4
+      - filepath    >= 1.5.4  && < 1.6
+      - tasty       >= 1.5.3  && < 1.6
+      - tasty-hunit >= 0.10.2 && < 0.11
+      - text
+      - tiger
