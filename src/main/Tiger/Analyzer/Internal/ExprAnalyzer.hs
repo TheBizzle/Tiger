@@ -38,11 +38,11 @@ import Tiger.Analyzer.Internal.IRValue(IRValue(IRValue, irvType))
 import Tiger.Analyzer.Internal.Scope(Environment(envFuncs), FuncInfo(FIAddress, PreFunc), Scope(Scope))
 import Tiger.Analyzer.Internal.Type(Type(Array, Record, Unit), UniqueID(UniqueID))
 
-import qualified Data.List                    as List
-import qualified Data.List.NonEmpty           as NE
-import qualified Data.Map                     as Map
-import qualified Data.Set                     as Set
-import qualified Tiger.Analyzer.Internal.Type as Type
+import Data.List                    qualified as List
+import Data.List.NonEmpty           qualified as NE
+import Data.Map                     qualified as Map
+import Data.Set                     qualified as Set
+import Tiger.Analyzer.Internal.Type qualified as Type
 
 
 crawlAST :: Expr -> Verification IRValue

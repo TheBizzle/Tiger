@@ -15,9 +15,9 @@ import Tiger.Analyzer.Internal.Common(
 import Tiger.Analyzer.Internal.IRValue(IRValue)
 import Tiger.Analyzer.Internal.Scope(Environment(Env), Scope(Scope))
 
-import qualified Data.List.NonEmpty as NE
-import qualified Data.Map           as Map
-import qualified Data.Set           as Set
+import Data.List.NonEmpty qualified as NE
+import Data.Map           qualified as Map
+import Data.Set           qualified as Set
 
 
 analyze :: Expr -> Validated IRValue

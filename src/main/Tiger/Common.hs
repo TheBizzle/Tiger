@@ -1,7 +1,7 @@
 module Tiger.Common(formatError, lineAtIndex) where
 
-import qualified Data.List as List
-import qualified Data.Text as Text
+import Data.List qualified as List
+import Data.Text qualified as Text
 
 
 formatError :: FilePath -> Text -> Word -> Word -> Text -> Text -> Text -> Text -> Text

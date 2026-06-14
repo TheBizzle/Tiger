@@ -17,10 +17,10 @@ import Tiger.Analyzer.Internal.Common(
 import Tiger.Analyzer.Internal.Scope(Environment(Env), Scope(Scope), TypeInfo(TIAddress))
 import Tiger.Analyzer.Internal.Type(Type(Array, Record), UniqueID(UniqueID))
 
-import qualified Data.List        as List
-import qualified Data.Map         as Map
-import qualified Data.Set         as Set
-import qualified Tiger.Parser.AST as AST
+import Data.List        qualified as List
+import Data.Map         qualified as Map
+import Data.Set         qualified as Set
+import Tiger.Parser.AST qualified as AST
 
 
 crawlTypeDecl :: TypeDeclEntry -> Verification (Symbol, Type)

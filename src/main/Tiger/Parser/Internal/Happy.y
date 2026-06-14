@@ -15,9 +15,9 @@ import Tiger.Lexer.Token(
 
 import Tiger.Parser.Internal.ParserError(ParserError(ParserError), ParserErrorType(Aborted, BadSyntax))
 
-import qualified Data.List.NonEmpty        as NE
-import qualified Tiger.Lexer.Token         as Token
-import qualified Tiger.Parser.Internal.AST as AST
+import Data.List.NonEmpty        qualified as NE
+import Tiger.Lexer.Token         qualified as Token
+import Tiger.Parser.Internal.AST qualified as AST
 }
 
 %name       happarse

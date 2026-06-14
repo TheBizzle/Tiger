@@ -27,10 +27,10 @@ import Tiger.Analyzer.Internal.Scope(
 import Tiger.Analyzer.Internal.Type(Type)
 import Tiger.Analyzer.Internal.TypeDeclAnalyzer(crawlTypeDecl)
 
-import qualified Data.List          as List
-import qualified Data.List.NonEmpty as NE
-import qualified Data.Map           as Map
-import qualified Data.Set           as Set
+import Data.List          qualified as List
+import Data.List.NonEmpty qualified as NE
+import Data.Map           qualified as Map
+import Data.Set           qualified as Set
 
 
 crawlTypeBatch :: NonEmpty TypeDeclEntry -> Verification ()

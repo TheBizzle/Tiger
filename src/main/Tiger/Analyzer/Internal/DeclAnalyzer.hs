@@ -40,8 +40,8 @@ import Tiger.Analyzer.Internal.Type(Type(Unit))
 import Tiger.Analyzer.Internal.TypeBatchAnalyzer(crawlTypeBatch)
 import Tiger.Analyzer.Internal.VarDeclAnalyzer(crawlVarDecl)
 
-import qualified Data.List.NonEmpty as NE
-import qualified Data.Map           as Map
+import Data.List.NonEmpty qualified as NE
+import Data.Map           qualified as Map
 
 
 data DeclBatch

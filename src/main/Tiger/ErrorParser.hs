@@ -19,8 +19,8 @@ import Tiger.Analyzer.AnalyzerError(
 
 import Tiger.Analyzer.Type(Type(Array, Int, Named, Nil, Record, String, Unit), UniqueID(UniqueID))
 
-import qualified Data.List.NonEmpty as NE
-import qualified Data.Text          as Text
+import Data.List.NonEmpty qualified as NE
+import Data.Text          qualified as Text
 
 
 data CompilationError

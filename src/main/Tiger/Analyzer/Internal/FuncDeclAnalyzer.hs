@@ -28,8 +28,8 @@ import Tiger.Analyzer.Internal.IRValue(IRValue(IRValue))
 import Tiger.Analyzer.Internal.Scope(Environment(Env), FuncInfo(FIAddress), Scope(Scope))
 import Tiger.Analyzer.Internal.Type(Type(Array, Named, Nil, Record, Unit))
 
-import qualified Data.Map                     as Map
-import qualified Tiger.Analyzer.Internal.Type as Type
+import Data.Map                     qualified as Map
+import Tiger.Analyzer.Internal.Type qualified as Type
 
 
 crawlFuncDecl :: (Expr -> Verification IRValue) -> FuncDecl -> Verification (Symbol, Function)

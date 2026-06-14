@@ -24,10 +24,10 @@ import Tiger.Analyzer.AnalyzerError(
 import Tiger.Analyzer.Internal.Address(TypeAddress(IntAddress, StringAddress))
 import Tiger.Analyzer.Internal.Type(Type(Array, Named, Record), UniqueID(UniqueID))
 
-import qualified Data.List.NonEmpty           as NE
-import qualified Data.Map                     as Map
-import qualified Data.Text.IO                 as TIO
-import qualified Tiger.Analyzer.Internal.Type as Type
+import Data.List.NonEmpty           qualified as NE
+import Data.Map                     qualified as Map
+import Data.Text.IO                 qualified as TIO
+import Tiger.Analyzer.Internal.Type qualified as Type
 
 
 data TigerTestResult

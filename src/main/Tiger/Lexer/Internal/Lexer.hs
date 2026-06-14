@@ -3,7 +3,7 @@ module Tiger.Lexer.Internal.Lexer(lex) where
 import Tiger.Lexer.Internal.Grammar(runLexer)
 import Tiger.Lexer.Internal.Token(Token)
 
-import qualified Data.List.NonEmpty as NE
+import Data.List.NonEmpty qualified as NE
 
 
 lex :: (FilePath, Text) -> Validation (NonEmpty Text) [Token]

@@ -27,9 +27,9 @@ import Tiger.Analyzer.Internal.Scope(
 
 import Tiger.Analyzer.Internal.Type(Type(Array, Record, Unit))
 
-import qualified Data.Map                     as Map
-import qualified Data.Set                     as Set
-import qualified Tiger.Analyzer.Internal.Type as Type
+import Data.Map                     qualified as Map
+import Data.Set                     qualified as Set
+import Tiger.Analyzer.Internal.Type qualified as Type
 
 
 crawlLValue :: (Expr -> Verification IRValue) -> Bool -> LValue -> Verification IRValue

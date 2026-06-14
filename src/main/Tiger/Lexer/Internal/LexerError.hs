@@ -2,7 +2,7 @@ module Tiger.Lexer.Internal.LexerError(mungeError) where
 
 import Tiger.Common(formatError)
 
-import qualified Data.Text as Text
+import Data.Text qualified as Text
 
 
 

@@ -12,9 +12,9 @@ import Tiger.Lexer.Internal.Token(
   , TokenType(..)
   )
 
-import qualified Data.List  as List
-import qualified Data.Maybe as Maybe
-import qualified Data.Text  as Text
+import Data.List  qualified as List
+import Data.Maybe qualified as Maybe
+import Data.Text  qualified as Text
 }
 
 %wrapper "monadUserState"

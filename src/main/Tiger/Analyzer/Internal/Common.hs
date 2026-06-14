@@ -32,9 +32,9 @@ import Tiger.Analyzer.Internal.Function(Function)
 import Tiger.Analyzer.Internal.Scope(Environment(Env, envTypes), Scope(environ, Scope), TypeInfo(tiAddr))
 import Tiger.Analyzer.Internal.Type(isSubtypeOf, Type(Array, Named, Record), UniqueID)
 
-import qualified Data.List.NonEmpty           as NE
-import qualified Data.Map                     as Map
-import qualified Tiger.Analyzer.Internal.Type as Type
+import Data.List.NonEmpty           qualified as NE
+import Data.Map                     qualified as Map
+import Tiger.Analyzer.Internal.Type qualified as Type
 
 
 data AnalyzerState =

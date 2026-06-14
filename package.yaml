@@ -33,6 +33,7 @@ ghc-options:
   - -Wmissing-role-annotations
   - -Wmonomorphism-restriction
   - -Woperator-whitespace
+  - -Wprepositive-qualified-module
   - -Wredundant-constraints
   - -Wterm-variable-capture
   - -Wtype-defaults

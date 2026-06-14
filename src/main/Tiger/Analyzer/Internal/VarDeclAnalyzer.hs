@@ -21,7 +21,7 @@ import Tiger.Analyzer.Internal.IRValue(IRValue(irvType))
 import Tiger.Analyzer.Internal.Scope(Environment(Env), Scope(Scope), VarInfo(VIAddress))
 import Tiger.Analyzer.Internal.Type(Type(Nil))
 
-import qualified Data.Map as Map
+import Data.Map qualified as Map
 
 
 crawlVarDecl :: (Expr -> Verification IRValue) -> VarDecl -> Verification (Symbol, Type)

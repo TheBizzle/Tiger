@@ -5,7 +5,7 @@ import System.Exit(exitWith, ExitCode(ExitFailure))
 
 import Tiger.Compiler(compile)
 
-import qualified Data.Text.IO as TIO
+import Data.Text.IO qualified as TIO
 
 
 main :: IO ()
