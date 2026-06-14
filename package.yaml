@@ -23,11 +23,22 @@ dependencies:
 ghc-options:
   - -Wall
   - -Wcompat
+  - -Werror
+  - -Wextra
+  - -Widentities
   - -Wincomplete-record-updates
   - -Wincomplete-uni-patterns
+  - -Wincomplete-record-selectors
   - -Wmissing-import-lists
+  - -Wmissing-role-annotations
+  - -Wmonomorphism-restriction
+  - -Woperator-whitespace
   - -Wredundant-constraints
-  - -fno-warn-name-shadowing
+  - -Wterm-variable-capture
+  - -Wtype-defaults
+  - -Wno-error=type-defaults
+  - -Wunused-imports
+  - -Wno-error=unused-imports
   - -funbox-strict-fields
   - -O2
 
