@@ -166,7 +166,7 @@ enabledTests =
 disabledTests :: [Text]
 disabledTests = map testName allTests
 
-runPhases :: Text -> Either Text ()
+runPhases :: (FilePath, Text) -> Either Text ()
 runPhases = compile &> (validation (showText &> Left) $ \ast -> traceShow "" $ Right ())
 
 -- ── Harness internals ─────────────────────────────────────────────────────────
@@ -216,7 +216,7 @@ checkDisabled (Disabled      t) =
     exists <- doesFileExist fp
     if exists then do
       src <- TIO.readFile fp
-      case (runPhases src, expectation t) of
+      case (runPhases (fp, src), expectation t) of
         (Right (), ShouldPass  ) -> return $ Just t -- Surprise success
         (Left   _, ShouldFail _) -> return $ Just t -- Surprise failure
         (       _, ShouldSkip _) -> return Nothing
@@ -233,7 +233,7 @@ makeEnabled t = declareTest (testName t <> ": " <> notes t) runIt
         exists    <- doesFileExist path
         if exists then do
           src <- TIO.readFile path
-          case (runPhases src, expectation t) of
+          case (runPhases (path, src), expectation t) of
             (Right (), ShouldPass     ) -> return ()
             (Left   _, ShouldFail    _) -> return ()
             (       _, ShouldSkip    _) -> return ()

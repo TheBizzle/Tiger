@@ -6,6 +6,8 @@ import Control.Monad(mzero)
 import Control.Monad.State.Strict
 import Control.Monad.Trans.Maybe(MaybeT, runMaybeT)
 
+import Data.List.NonEmpty((<|))
+
 import Tiger.Lexer.Token(
     SourceLoc(column, lineNumber, sourceFile, SourceLoc)
   , Token(loc, Token, typ)
@@ -34,60 +36,60 @@ import qualified Tiger.Parser.Internal.AST as AST
 
 %token
 
-  '&'   { Token.Token  Token.And           $$ }
-  Array { Token.Token  Token.Array         $$ }
-  ':='  { Token.Token  Token.Assign        $$ }
-  Break { Token.Token  Token.Break         $$ }
-  ':'   { Token.Token  Token.Colon         $$ }
-  ','   { Token.Token  Token.Comma         $$ }
-  '/'   { Token.Token  Token.Divide        $$ }
-  Do    { Token.Token  Token.Do            $$ }
-  '.'   { Token.Token  Token.Dot           $$ }
-  Else  { Token.Token  Token.Else          $$ }
-  End   { Token.Token  Token.End           $$ }
-  '='   { Token.Token  Token.Equals        $$ }
-  For   { Token.Token  Token.For           $$ }
-  Func  { Token.Token  Token.Function      $$ }
-  '>='  { Token.Token  Token.GreaterEquals $$ }
-  '>'   { Token.Token  Token.GreaterThan   $$ }
-  If    { Token.Token  Token.If            $$ }
-  In    { Token.Token  Token.In            $$ }
-  '{'   { Token.Token  Token.LeftBrace     $$ }
-  '['   { Token.Token  Token.LeftBracket   $$ }
-  '('   { Token.Token  Token.LeftParen     $$ }
-  '<='  { Token.Token  Token.LessEquals    $$ }
-  '<'   { Token.Token  Token.LessThan      $$ }
-  Let   { Token.Token  Token.Let           $$ }
-  '-'   { Token.Token  Token.Minus         $$ }
-  '*'   { Token.Token  Token.Multiply      $$ }
-  Nil   { Token.Token  Token.Nil           $$ }
-  '<>'  { Token.Token  Token.NotEquals     $$ }
-  Of    { Token.Token  Token.Of            $$ }
-  '|'   { Token.Token  Token.Or            $$ }
-  '+'   { Token.Token  Token.Plus          $$ }
-  '}'   { Token.Token  Token.RightBrace    $$ }
-  ']'   { Token.Token  Token.RightBracket  $$ }
-  ')'   { Token.Token  Token.RightParen    $$ }
-  ';'   { Token.Token  Token.Semicolon     $$ }
-  Then  { Token.Token  Token.Then          $$ }
-  To    { Token.Token  Token.To            $$ }
-  Type  { Token.Token  Token.Type          $$ }
-  Var   { Token.Token  Token.Var           $$ }
-  While { Token.Token  Token.While         $$ }
-  INT   { Token.Token (Token.Int        _)  _ }
-  IDENT { Token.Token (Token.Identifier _)  _ }
-  STR   { Token.Token (Token.Stringy    _)  _ }
+  '&'   { Token.Token  Token.And           _ }
+  Array { Token.Token  Token.Array         _ }
+  ':='  { Token.Token  Token.Assign        _ }
+  Break { Token.Token  Token.Break         _ }
+  ':'   { Token.Token  Token.Colon         _ }
+  ','   { Token.Token  Token.Comma         _ }
+  '/'   { Token.Token  Token.Divide        _ }
+  Do    { Token.Token  Token.Do            _ }
+  '.'   { Token.Token  Token.Dot           _ }
+  Else  { Token.Token  Token.Else          _ }
+  End   { Token.Token  Token.End           _ }
+  '='   { Token.Token  Token.Equals        _ }
+  For   { Token.Token  Token.For           _ }
+  Func  { Token.Token  Token.Function      _ }
+  '>='  { Token.Token  Token.GreaterEquals _ }
+  '>'   { Token.Token  Token.GreaterThan   _ }
+  If    { Token.Token  Token.If            _ }
+  In    { Token.Token  Token.In            _ }
+  '{'   { Token.Token  Token.LeftBrace     _ }
+  '['   { Token.Token  Token.LeftBracket   _ }
+  '('   { Token.Token  Token.LeftParen     _ }
+  '<='  { Token.Token  Token.LessEquals    _ }
+  '<'   { Token.Token  Token.LessThan      _ }
+  Let   { Token.Token  Token.Let           _ }
+  '-'   { Token.Token  Token.Minus         _ }
+  '*'   { Token.Token  Token.Multiply      _ }
+  Nil   { Token.Token  Token.Nil           _ }
+  '<>'  { Token.Token  Token.NotEquals     _ }
+  Of    { Token.Token  Token.Of            _ }
+  '|'   { Token.Token  Token.Or            _ }
+  '+'   { Token.Token  Token.Plus          _ }
+  '}'   { Token.Token  Token.RightBrace    _ }
+  ']'   { Token.Token  Token.RightBracket  _ }
+  ')'   { Token.Token  Token.RightParen    _ }
+  ';'   { Token.Token  Token.Semicolon     _ }
+  Then  { Token.Token  Token.Then          _ }
+  To    { Token.Token  Token.To            _ }
+  Type  { Token.Token  Token.Type          _ }
+  Var   { Token.Token  Token.Var           _ }
+  While { Token.Token  Token.While         _ }
+  INT   { Token.Token (Token.Int        _) _ }
+  IDENT { Token.Token (Token.Identifier _) _ }
+  STR   { Token.Token (Token.Stringy    _) _ }
 
 %%
 
 expr :: { AST.Expr }
 expr
-  : INT    { let Token.Token (Token.Int     value) srcLoc = $1 in AST.IntExpr    (fromIntegral value) srcLoc }
-  | STR    { let Token.Token (Token.Stringy value) srcLoc = $1 in AST.StringExpr value                srcLoc }
+  : INT    { let Token.Token (Token.Int     value) _ = $1 in AST.IntExpr    (fromIntegral value) $1 }
+  | STR    { let Token.Token (Token.Stringy value) _ = $1 in AST.StringExpr value                $1 }
   | Nil    { AST.NilExpr $1 }
-  | lvalue { AST.LValueExpr $1 $1.lValSrcLoc }
+  | lvalue { AST.LValueExpr $1 $1.lValToken }
 
-  | '-' expr %prec NEG { AST.OpExpr (AST.IntExpr 0 $ SourceLoc "" 0 0) AST.MinusOp $2 $1 }
+  | '-' expr %prec NEG { AST.OpExpr (AST.IntExpr 0 $1) AST.MinusOp $2 $1 }
 
   | expr '+'  expr { AST.OpExpr $1 AST.PlusOp            $3 $2 }
   | expr '-'  expr { AST.OpExpr $1 AST.MinusOp           $3 $2 }
@@ -100,130 +102,121 @@ expr
   | expr '>'  expr { AST.OpExpr $1 AST.GreaterThanOp     $3 $2 }
   | expr '>=' expr { AST.OpExpr $1 AST.GreaterOrEqualsOp $3 $2 }
 
-  | expr '&' expr { AST.IfExpr $1 $3                                 (Just $ AST.IntExpr 0 $ SourceLoc "" 0 0) $2 }
-  | expr '|' expr { AST.IfExpr $1 (AST.IntExpr 1 $ SourceLoc "" 0 0) (Just                                 $3) $2 }
+  | expr '&' expr { AST.IfExpr $1 $3                 (Just $ AST.IntExpr 0 $2) $2 }
+  | expr '|' expr { AST.IfExpr $1 (AST.IntExpr 1 $2) (Just                 $3) $2 }
 
   | lvalue ':=' expr { AST.AssignExpr $1 $3 $2 }
 
-  | IDENT '(' exprlist ')' { let Token.Token (Token.Identifier name) loc = $1 in AST.CallExpr name $3 loc }
-  | IDENT '('          ')' { let Token.Token (Token.Identifier name) loc = $1 in AST.CallExpr name [] loc }
+  | IDENT '(' exprlist ')' { let name = ident $1 in AST.CallExpr name $3 $1 }
+  | IDENT '('          ')' { let name = ident $1 in AST.CallExpr name [] $1 }
 
   | If expr Then expr           { AST.IfExpr $2 $4 Nothing   $1 }
   | If expr Then expr Else expr { AST.IfExpr $2 $4 (Just $6) $1 }
 
   | While expr Do expr { AST.WhileExpr $2 $4 $1 }
 
-  | For IDENT ':=' expr To expr Do expr { let Token.Token (Token.Identifier name) _ = $2 in AST.ForExpr name True $4 $6 $8 $1 }
+  | For IDENT ':=' expr To expr Do expr { let name = ident $2 in AST.ForExpr name True $4 $6 $8 $1 }
 
   | Break { AST.BreakExpr $1 }
 
   | '(' exprseq ')' { AST.SeqExpr $2 $1 }
   | '('         ')' { AST.SeqExpr [] $1 }
 
-  | Let decls In exprseq End { AST.LetExpr $2 (AST.SeqExpr $4 $3) $1 }
-  | Let decls In         End { AST.LetExpr $2 (AST.SeqExpr [] $3) $1 }
+  | Let decls In exprseq End { AST.LetExpr (NE.reverse $2) (AST.SeqExpr $4 $3) $1 }
+  | Let decls In         End { AST.LetExpr (NE.reverse $2) (AST.SeqExpr [] $3) $1 }
 
-  | IDENT '{' fieldinits '}' { let Token.Token (Token.Identifier name) loc = $1 in AST.RecordExpr $3 name loc }
-  | IDENT '{'            '}' { let Token.Token (Token.Identifier name) loc = $1 in AST.RecordExpr [] name loc }
+  | IDENT '{' fieldinits '}' { let name = ident $1 in AST.RecordExpr $3 name $1 }
+  | IDENT '{'            '}' { let name = ident $1 in AST.RecordExpr [] name $1 }
 
-  | IDENT '[' expr ']' Of expr { let Token.Token (Token.Identifier name) loc = $1 in AST.ArrayExpr name $3 $6 loc }
+  | IDENT '[' expr ']' Of expr { let name = ident $1 in AST.ArrayExpr name $3 $6 $1 }
 
   | '(' expr ')' { $2 }
 
 
 lvalue :: { AST.LValue }
 lvalue
-  : IDENT               { let Token.Token (Token.Identifier name) loc = $1 in AST.Variable name loc }
-  | lvalue '.' IDENT    { let Token.Token (Token.Identifier name) loc = $3 in AST.RecordField $1 name loc }
-  | lvalue '[' expr ']' { AST.ArrayIndex $1 $3 (AST.lValSrcLoc $1) }
-  | IDENT  '[' expr ']' { let Token.Token (Token.Identifier name) loc = $1 in AST.ArrayIndex (AST.Variable name loc) $3 (Token.loc $1) }
+  : IDENT               { let name = ident $1 in AST.Variable       name $1 }
+  | lvalue '.' IDENT    { let name = ident $3 in AST.RecordField $1 name $3 }
+  | lvalue '[' expr ']' { AST.ArrayIndex $1 $3 (AST.lValToken $1) }
+  | IDENT  '[' expr ']' { let name = ident $1 in AST.ArrayIndex (AST.Variable name $1) $3 $1 }
 
 exprlist :: { [AST.Expr] }
 exprlist
   :              expr {       [$1] }
   | exprlist ',' expr { $1 <> [$3] }
 
-exprseq :: { [(AST.Expr, Token.SourceLoc)] }
+exprseq :: { [(AST.Expr, Token.Token)] }
 exprseq
-  :             expr {       [($1, $1.srcLoc)] }
-  | exprseq ';' expr { $1 <> [($3, $3.srcLoc)] }
+  :             expr {       [($1, $1.token)] }
+  | exprseq ';' expr { $1 <> [($3, $3.token)] }
 
-fieldinits :: { [(AST.Symbol, AST.Expr, Token.SourceLoc)] }
+fieldinits :: { [(AST.Symbol, AST.Expr, Token.Token)] }
 fieldinits
-  :                IDENT '=' expr { let Token.Token (Token.Identifier name) loc = $1 in       [(name, $3, loc)] }
-  | fieldinits ',' IDENT '=' expr { let Token.Token (Token.Identifier name) loc = $3 in $1 <> [(name, $5, loc)] }
+  :                IDENT '=' expr { let name = ident $1 in       [(name, $3, $1)] }
+  | fieldinits ',' IDENT '=' expr { let name = ident $3 in $1 <> [(name, $5, $3)] }
 
-decls :: { [AST.Decl] }
+decls :: { NonEmpty AST.Decl }
 decls
-  : decl       {       [$1] }
-  | decls decl { $1 <> [$2] }
+  : decl       { NE.singleton $1 }
+  | decls decl { $2 <| $1 }
 
 decl :: { AST.Decl }
 decl
-  : typedecls { AST.TypeDecl $1 }
-  | vardecl   { $1 }
-  | funcdecls { AST.FunctionDecl $1 }
-
-typedecls :: { [AST.TypeDeclEntry] }
-typedecls
-  : typedecl           {       [$1] }
-  | typedecls typedecl { $1 <> [$2] }
+  : typedecl { AST.TypeDecl     $1 }
+  | vardecl  { AST.VariableDecl $1 }
+  | funcdecl { AST.FunctionDecl $1 }
 
 typedecl :: { AST.TypeDeclEntry }
 typedecl
-  : Type IDENT '=' typ { let Token.Token (Token.Identifier name) _ = $2 in AST.TypeDeclEntry name $4 $1 }
+  : Type IDENT '=' typ { let name = ident $2 in AST.TypeDeclEntry name $4 $2 }
 
-typ :: { AST.TigerType }
+typ :: { AST.Type }
 typ
-  : IDENT             { let Token.Token (Token.Identifier name) loc = $1 in AST.NamedType name loc }
+  : IDENT             { let name = ident $1 in AST.NamedType name $1 }
   | '{' fieldlist '}' { AST.RecordType $2 }
   | '{'           '}' { AST.RecordType [] }
-  | Array Of IDENT    { let Token.Token (Token.Identifier name) loc = $3 in AST.ArrayType name loc }
+  | Array Of IDENT    { let name = ident $3 in AST.ArrayType name $3 }
 
-vardecl :: { AST.Decl }
+vardecl :: { AST.VarDecl }
 vardecl
-  : Var IDENT           ':=' expr { let Token.Token (Token.Identifier name) loc = $2 in AST.VarDecl name True Nothing $4 loc }
+  : Var IDENT           ':=' expr { let name = ident $2 in AST.VarDecl name True Nothing $4 $2 }
   | Var IDENT ':' IDENT ':=' expr {
       let {
-        Token.Token (Token.Identifier  varName)  varLoc = $2;
-        Token.Token (Token.Identifier typeName) typeLoc = $4;
-      } in AST.VarDecl varName True (Just (typeName, typeLoc)) $6 varLoc }
-
-funcdecls :: { [AST.FuncDecl] }
-funcdecls
-  : funcdecl           {       [$1] }
-  | funcdecls funcdecl { $1 <> [$2] }
+        varName  = ident $2;
+        typeName = ident $4;
+      } in AST.VarDecl varName True (Just (typeName, $4)) $6 $2
+    }
 
 funcdecl :: { AST.FuncDecl }
 funcdecl
-  : Func IDENT '(' fieldlist ')'           '=' expr { let Token.Token (Token.Identifier name) loc = $2 in AST.FuncDecl name $4 Nothing $7 loc }
-  | Func IDENT '('           ')'           '=' expr { let Token.Token (Token.Identifier name) loc = $2 in AST.FuncDecl name [] Nothing $6 loc }
+  : Func IDENT '(' fieldlist ')'           '=' expr { let name = ident $2 in AST.FuncDecl name $4 Nothing $7 $2 }
+  | Func IDENT '('           ')'           '=' expr { let name = ident $2 in AST.FuncDecl name [] Nothing $6 $2 }
   | Func IDENT '(' fieldlist ')' ':' IDENT '=' expr {
       let {
-        Token.Token (Token.Identifier    fName)       _ = $2;
-        Token.Token (Token.Identifier typeName) typeLoc = $7;
-      } in AST.FuncDecl fName $4 (Just (typeName, typeLoc)) $9 $1
+        fName    = ident $2;
+        typeName = ident $7;
+      } in AST.FuncDecl fName $4 (Just (typeName, $7)) $9 $2
     }
   | Func IDENT '('           ')' ':' IDENT '=' expr {
       let {
-        Token.Token (Token.Identifier    fName)       _ = $2;
-        Token.Token (Token.Identifier typeName) typeLoc = $6;
-      } in AST.FuncDecl fName [] (Just (typeName, typeLoc)) $8 $1
+        fName    = ident $2;
+        typeName = ident $6;
+      } in AST.FuncDecl fName [] (Just (typeName, $6)) $8 $2
     }
 
 fieldlist :: { [AST.Field] }
 fieldlist
   : IDENT ':' IDENT {
       let {
-        Token.Token (Token.Identifier    fName) fLoc = $1;
-        Token.Token (Token.Identifier typeName)    _ = $3;
-      } in [AST.Field fName True typeName fLoc]
+        fName    = ident $1;
+        typeName = ident $3;
+      } in [AST.Field fName True typeName $1 $3]
     }
   | fieldlist ',' IDENT ':' IDENT {
       let {
-        Token.Token (Token.Identifier    fName) fLoc = $3;
-        Token.Token (Token.Identifier typeName)    _ = $5;
-      } in $1 <> [AST.Field fName True typeName fLoc]
+        fName    = ident $3;
+        typeName = ident $5;
+      } in $1 <> [AST.Field fName True typeName $3 $5]
     }
 
 {type ParseState a = MaybeT (State [ParserError]) a
@@ -260,4 +253,7 @@ report tokens resume =
       case tokens of
         []    -> SourceLoc "" 0 0
         (h:_) -> h.loc
+
+ident (Token.Token (Token.Identifier name) _) = AST.Symbol name
+ident                                       _ = error "Invalid match!  Boom!"
 }

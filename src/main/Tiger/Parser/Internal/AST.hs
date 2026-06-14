@@ -1,108 +1,87 @@
 {-# OPTIONS_GHC -fno-warn-missing-import-lists #-}
 module Tiger.Parser.Internal.AST where
 
-import Tiger.Lexer.Token(SourceLoc)
+import Tiger.Lexer.Token(Token)
 
 
-type Symbol = Text
+newtype Symbol
+  = Symbol { symbolText :: Text }
+  deriving (Eq, Ord, Show)
 
 data LValue
-  = Variable { lValSymbol :: Symbol
-             , lValSrcLoc :: SourceLoc
-             }
+  = ArrayIndex { lValLVal  :: LValue
+               , lValIndex :: Expr
+               , lValToken :: Token
+               }
   | RecordField { lValLVal   :: LValue
                 , lValSymbol :: Symbol
-                , lValSrcLoc :: SourceLoc
+                , lValToken  :: Token
                 }
-  | ArrayIndex { lValLVal   :: LValue
-               , lValIndex  :: Expr
-               , lValSrcLoc :: SourceLoc
-               }
-  deriving (Eq, Show)
+  | Variable { lValSymbol :: Symbol
+             , lValToken  :: Token
+             }
+  deriving (Eq, Ord, Show)
 
 data Expr
-  = LValueExpr { lValValue :: LValue
-               , srcLoc    :: SourceLoc
+  = AssignExpr { assignLVal :: LValue
+               , assignExpr :: Expr
+               , token      :: Token
                }
-  | NilExpr { srcLoc :: SourceLoc }
-  | IntExpr    { intValue :: Int
-               , srcLoc   :: SourceLoc
-               }
-  | StringExpr { strValue :: Text
-               , srcLoc :: SourceLoc
-               }
+  | ArrayExpr { arrayType :: Symbol
+              , arraySize :: Expr
+              , arrayInit :: Expr
+              , token     :: Token
+              }
+  | BreakExpr { token   :: Token }
   | CallExpr { callFunc :: Symbol
              , callArgs :: [Expr]
-             , srcLoc   :: SourceLoc
+             , token    :: Token
              }
-  | OpExpr { opLeft     :: Expr
-           , opOperator :: Operator
-           , opRight    :: Expr
-           , srcLoc     :: SourceLoc
-           }
-  | RecordExpr { recFields :: [(Symbol, Expr, SourceLoc)]
-               , recType   :: Symbol
-               , srcLoc    :: SourceLoc
-               }
-  | SeqExpr { statements :: [(Expr, SourceLoc)]
-            , srcLoc     :: SourceLoc
-            }
-  | AssignExpr { assignLVal :: LValue
-               , assignExpr :: Expr
-               , srcLoc     :: SourceLoc
-               }
-  | IfExpr { antecedent  :: Expr
-           , consequent  :: Expr
-           , alternative :: Maybe Expr
-           , srcLoc      :: SourceLoc
-           }
-  | WhileExpr { whileTest :: Expr
-              , whileBody :: Expr
-              , srcLoc    :: SourceLoc
-              }
   | ForExpr { forVar    :: Symbol
             , forEscape :: Bool
             , forLow    :: Expr
             , forHigh   :: Expr
             , forBody   :: Expr
-            , srcLoc    :: SourceLoc
+            , token     :: Token
             }
-  | BreakExpr { srcLoc  :: SourceLoc }
-  | LetExpr { letDecls :: [Decl]
+  | IfExpr { antecedent  :: Expr
+           , consequent  :: Expr
+           , alternative :: Maybe Expr
+           , token       :: Token
+           }
+  | IntExpr { intValue :: Int
+            , token    :: Token
+            }
+  | LetExpr { letDecls :: NonEmpty Decl
             , letBody  :: Expr
-            , srcLoc   :: SourceLoc
+            , token    :: Token
             }
-  | ArrayExpr { arrayType :: Symbol
-              , arraySize :: Expr
-              , arrayInit :: Expr
-              , srcLoc    :: SourceLoc
+  | LValueExpr { lValValue :: LValue
+               , token     :: Token
+               }
+  | NilExpr { token  :: Token }
+  | OpExpr { opLeft     :: Expr
+           , opOperator :: Operator
+           , opRight    :: Expr
+           , token      :: Token
+           }
+  | RecordExpr { recFields :: [(Symbol, Expr, Token)]
+               , recType   :: Symbol
+               , token     :: Token
+               }
+  | SeqExpr { statements :: [(Expr, Token)]
+            , token      :: Token
+            }
+  | StringExpr { strValue :: Text
+               , token    :: Token
+               }
+  | WhileExpr { whileTest :: Expr
+              , whileBody :: Expr
+              , token     :: Token
               }
-  deriving (Eq, Show)
+  deriving (Eq, Ord, Show)
 
-data Decl
-  = FunctionDecl { funcDecls :: [FuncDecl] }
-  | VarDecl { varName   :: Symbol
-            , varEscape :: Bool
-            , varTypeM  :: Maybe (Symbol, SourceLoc)
-            , varInit   :: Expr
-            , varSrcLoc :: SourceLoc
-            }
-  | TypeDecl { typeDecls :: [TypeDeclEntry] }
-  deriving (Eq, Show)
-
-data TypeDeclEntry
-  = TypeDeclEntry { typeDeclName   :: Symbol
-                  , typeDeclType   :: TigerType
-                  , typeDeclSrcLoc :: SourceLoc
-                  }
-  deriving (Eq, Show)
-
-data TigerType
-  = NamedType  { typeSymbol :: Symbol, typeSrcLoc :: SourceLoc }
-  | RecordType { fields     :: [Field] }
-  | ArrayType  { typeSymbol :: Symbol, typeSrcLoc :: SourceLoc }
-  deriving (Eq, Show)
-
+-- By "operator", he apparently means "binary infix operator"
 data Operator
   = PlusOp
   | MinusOp
@@ -114,22 +93,51 @@ data Operator
   | LessOrEqualsOp
   | GreaterThanOp
   | GreaterOrEqualsOp
-  deriving (Bounded, Enum, Eq, Ord, Show)
+  deriving (Eq, Ord, Show)
+
+data Decl
+  = FunctionDecl { funcDecl' :: FuncDecl }
+  | TypeDecl     { typeDecl' :: TypeDeclEntry }
+  | VariableDecl { varDecl'  :: VarDecl }
+  deriving (Eq, Ord, Show)
+
+data VarDecl
+  = VarDecl { varName   :: Symbol
+            , varEscape :: Bool
+            , varTypeM  :: Maybe (Symbol, Token)
+            , varInit   :: Expr
+            , varToken  :: Token
+            }
+  deriving (Eq, Ord, Show)
+
+data TypeDeclEntry
+  = TypeDeclEntry { typeDeclName  :: Symbol
+                  , typeDeclType  :: Type
+                  , typeDeclToken :: Token
+                  }
+  deriving (Eq, Ord, Show)
+
+data Type
+  = ArrayType  { typeSymbol :: Symbol, typeToken :: Token }
+  | NamedType  { typeSymbol :: Symbol, typeToken :: Token }
+  | RecordType { fields     :: [Field] }
+  deriving (Eq, Ord, Show)
 
 -- Used in record types and param lists
 data Field
-  = Field { fieldName   :: Symbol
-          , fieldEscape :: Bool
-          , fieldType   :: Symbol
-          , fieldSrcLoc :: SourceLoc
+  = Field { fieldName      :: Symbol
+          , fieldEscape    :: Bool
+          , fieldType      :: Symbol
+          , fieldNameToken :: Token
+          , fieldTypeToken :: Token
           }
-  deriving (Eq, Show)
+  deriving (Eq, Ord, Show)
 
 data FuncDecl
   = FuncDecl { funcDeclName   :: Symbol
              , funcDeclParams :: [Field]
-             , funcDeclTypeM  :: Maybe (Symbol, SourceLoc)
+             , funcDeclTypeM  :: Maybe (Symbol, Token)
              , funcDeclBody   :: Expr
-             , funcDeclSrcLoc :: SourceLoc
+             , funcDeclToken  :: Token
              }
-  deriving (Eq, Show)
+  deriving (Eq, Ord, Show)

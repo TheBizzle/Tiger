@@ -2,7 +2,8 @@
 module Tiger.Lexer.Token(module Tiger.Lexer.Internal.Token) where
 
 import Tiger.Lexer.Internal.Token(
-    SourceLoc(column, lineNumber, sourceFile, SourceLoc)
+    delex
+  , SourceLoc(column, lineNumber, sourceFile, SourceLoc)
   , Token(loc, Token, typ)
   , TokenType(..)
   )

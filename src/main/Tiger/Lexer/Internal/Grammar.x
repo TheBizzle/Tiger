@@ -1,14 +1,18 @@
-{{-# OPTIONS_GHC -fno-warn-missing-import-lists #-}
-module Tiger.Lexer.Internal.Grammar where
+{{-# OPTIONS_GHC -w #-}
+module Tiger.Lexer.Internal.Grammar(runLexer) where
+
+import Control.Monad.State(gets, modify)
 
 import Data.List((!!), (++), drop, reverse, take)
 
+import Tiger.Lexer.Internal.LexerError(mungeError)
 import Tiger.Lexer.Internal.Token(
     SourceLoc(SourceLoc)
   , Token(Token)
   , TokenType(..)
   )
 
+import qualified Data.List  as List
 import qualified Data.Maybe as Maybe
 import qualified Data.Text  as Text
 }
@@ -83,41 +87,60 @@ tokens :-
   <str> \\$white+\\    ;
 
 {data AlexUserState =
-  AlexUserState { stringBuffer :: [Text]
-                , stringLoc    :: Maybe SourceLoc
-                , commentDepth :: Word
+  AlexUserState { commentDepth :: Word
+                , filepath     :: FilePath
+                , source       :: Text
+                , stringBuffer :: [Text]
+                , stringLocM   :: Maybe SourceLoc
                 }
 
 alexInitUserState :: AlexUserState
-alexInitUserState =
-  AlexUserState { stringBuffer = []
-                , stringLoc    = Nothing
-                , commentDepth = 0
-                }
+alexInitUserState = error "Alex state must be set before lexing"
 
-alexScanTokens :: String -> Either String [Token]
-alexScanTokens input =
-    runAlex input loop
+runLexer :: FilePath -> Text -> Either String [Token]
+runLexer path input =
+    runAlex (asString input) init
   where
+    init =
+      do
+        alexSetUserState $
+          AlexUserState { commentDepth = 0
+                        , filepath     = path
+                        , source       = input
+                        , stringBuffer = []
+                        , stringLocM   = Nothing
+                        }
+        loop
+
     loop =
       do
-        token <- alexMonadScan
+        token <- bizzleMonadScan
         case token of
           Token EOF _ -> return []
           t           -> map (t:) loop
 
 startString :: AlexInput -> b -> Alex Token
-startString (AlexPn _ line col, _, _, _) _ =
+startString (AlexPn offset line _, _, _, _) _ =
   do
-    initStringBuffer $ srcLocFrom line col
+    column <- columnOf offset
+    srcLoc <- srcLocFrom line column
+    initStringBuffer srcLoc
     alexSetStartCode str
-    alexMonadScan
+    bizzleMonadScan
+
+columnOf :: Int -> Alex Word
+columnOf offset =
+  do
+    userState <- alexGetUserState
+    let chars  = Text.take offset userState.source
+    let lines  = Text.lines chars
+    return $ fromIntegral $ (Text.length $ List.last lines) + 1
 
 addToString :: (a, b, c, String) -> Int -> Alex Token
 addToString (_, _, _, str) len =
   do
     appendStringBuffer $ Text.take len $ asText str
-    alexMonadScan
+    bizzleMonadScan
 
 endString :: a -> b -> Alex Token
 endString _ _ =
@@ -131,27 +154,27 @@ addEscape :: Char -> AlexInput -> Int -> Alex Token
 addEscape c _ _ =
   do
     appendStringBuffer $ Text.singleton c
-    alexMonadScan
+    bizzleMonadScan
 
 addControlEscape :: AlexInput -> Int -> Alex Token
 addControlEscape (_, _, _, str) len =
   do
     let c = toEnum $ fromEnum (str !! (len - 1)) - fromEnum '@'
     appendStringBuffer $ Text.singleton c
-    alexMonadScan
+    bizzleMonadScan
 
 addDecimalEscape :: AlexInput -> Int -> Alex Token
 addDecimalEscape (_, _, _, str) len =
   do
     let n = read (asString $ Text.take (len - 1) $ Text.drop 1 $ asText str) :: Int
     appendStringBuffer $ Text.singleton $ toEnum n
-    alexMonadScan
+    bizzleMonadScan
 
 getString :: Alex (Text, SourceLoc)
 getString = Alex $ \state -> Right (state, (buildStr state, buildSLoc state))
   where
     buildStr  state = Text.concat $ reverse $ (alex_ust state).stringBuffer
-    buildSLoc state = Maybe.fromJust (alex_ust state).stringLoc
+    buildSLoc state = Maybe.fromJust (alex_ust state).stringLocM
 
 initStringBuffer :: SourceLoc -> Alex ()
 initStringBuffer loc = Alex $ \state -> Right (update state, ())
@@ -160,7 +183,7 @@ initStringBuffer loc = Alex $ \state -> Right (update state, ())
       state {
         alex_ust = (alex_ust state) {
           stringBuffer = []
-        , stringLoc    = Just loc
+        , stringLocM   = Just loc
         }
       }
 
@@ -176,7 +199,7 @@ startComment _ _ =
     n <- getCommentDepth
     setCommentDepth $ n + 1
     alexSetStartCode comment
-    alexMonadScan
+    bizzleMonadScan
 
 endComment :: AlexInput -> Int -> Alex Token
 endComment _ _ =
@@ -188,7 +211,26 @@ endComment _ _ =
       alexSetStartCode 0
     else
       return ()
-    alexMonadScan
+    bizzleMonadScan
+
+bizzleMonadScan :: Alex Token
+bizzleMonadScan =
+  do
+    input     <- alexGetInput
+    startCode <- alexGetStartCode
+    case alexScan input startCode of
+      AlexEOF ->
+        alexEOF
+      AlexError ((AlexPn offset line column), _, _, _) -> do
+        state <- alexGetUserState
+        alexError $ asString $ mungeError state.filepath state.source (word offset) (word line) (word column)
+      AlexSkip input' _ ->
+        alexSetInput input' >> bizzleMonadScan
+      AlexToken input' length action -> do
+        alexSetInput input'
+        action input length
+  where
+    word = fromIntegral
 
 getCommentDepth :: Alex Word
 getCommentDepth = Alex $ \state -> Right (state, commentDepth $ alex_ust state)
@@ -199,22 +241,28 @@ setCommentDepth d = Alex $ \state -> Right (update state, ())
     update state = state { alex_ust = (alex_ust state) { commentDepth = d } }
 
 make :: (Text -> TokenType) -> AlexInput -> Int -> Alex Token
-make transform (AlexPn _ line col, _, _, str) len =
+make transform (AlexPn offset line _, _, _, str) len =
   do
-    let typ       = transform $ asText $ take len str
-    let sourceLoc = srcLocFrom line col
-    return $ Token typ sourceLoc
+    column  <- columnOf offset
+    let typ  = transform $ asText $ take len str
+    srcLoc  <- srcLocFrom line column
+    return $ Token typ srcLoc
 
 simplyMake :: TokenType -> AlexInput -> Int -> Alex Token
 simplyMake typ input len = make (const typ) input len
 
-srcLocFrom :: Int -> Int -> SourceLoc
-srcLocFrom line column = SourceLoc "" (fromIntegral line) (fromIntegral column)
+srcLocFrom :: Int -> Word -> Alex SourceLoc
+srcLocFrom line column =
+  do
+    state <- alexGetUserState
+    return $ SourceLoc state.filepath (fromIntegral line) column
 
 alexEOF :: Alex Token
 alexEOF =
   do
-    (AlexPn _ line col, _, _, _) <- alexGetInput
-    return $ Token EOF $ srcLocFrom line col
+    (AlexPn offset line _, _, _, _) <- alexGetInput
+    column                          <- columnOf offset
+    srcLoc                          <- srcLocFrom line column
+    return $ Token EOF srcLoc
 
 }

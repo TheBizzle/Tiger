@@ -12,5 +12,5 @@ main :: IO ()
 main = getArgs >>= processArgs
   where
     processArgs :: [String] -> IO ()
-    processArgs [] = TIO.putStr $ showText $ compile ""
+    processArgs [] = TIO.putStr $ showText $ compile ("", "")
     processArgs _  = (TIO.putStrLn "Usage: tiger") >> (exitWith $ ExitFailure 64)
