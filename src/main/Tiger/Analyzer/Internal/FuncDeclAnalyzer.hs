@@ -49,8 +49,7 @@ synthesizeLet :: Expr -> [Field] -> Verification Expr
 synthesizeLet body fields =
   case nonEmpty fields of
     Nothing -> win body
-    Just fs ->
-      (mapMSequA makeDecl fs) `andIfValidMV` makeLet
+    Just fs -> (mapMSequA makeDecl fs) `andIfValidMV` makeLet
   where
     makeLet decls = win $ LetExpr decls body body.token
 
@@ -77,18 +76,16 @@ detour token addr = (resolveTypeAddr token addr) `andIfValidMV` (initialValue to
 registerFunction :: (Expr -> Verification IRValue) -> Token -> Symbol -> [(Symbol, Type)] -> Type
                                                    -> Expr -> Verification (Symbol, Function)
 registerFunction crawlExpr token funcName params returnType bodyLet =
-  do
-    bodyIRV <- crawlExpr bodyLet
-    bodyIRV `failOrM` (
-      \bodyIR@(IRValue bodyExpr bodyType) ->
-        if returnType == Unit && bodyType /= Unit then
-          fail NonUnitProcedure token
-        else
-          (returnType, bodyType, bodyExpr.token) `typeErrorOr`
-            (declareFunction funcName params returnType bodyIR token) <&> (
-                $> (funcName, Function params returnType bodyIR)
-              )
-      )
+  (crawlExpr bodyLet) `andIfValidMV` (
+    \bodyIR@(IRValue bodyExpr bodyType) ->
+      if returnType == Unit && bodyType /= Unit then
+        fail NonUnitProcedure token
+      else
+        (returnType, bodyType, bodyExpr.token) `typeErrorOr`
+          (declareFunction funcName params returnType bodyIR token) <&> (
+              $> (funcName, Function params returnType bodyIR)
+            )
+    )
 
 declareFunction :: Symbol -> [(Symbol, Type)] -> Type -> IRValue -> Token -> Verification ()
 declareFunction name params returnType bodyIR token =

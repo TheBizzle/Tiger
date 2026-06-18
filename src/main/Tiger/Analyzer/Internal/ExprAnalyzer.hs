@@ -106,22 +106,20 @@ crawlBreak token =
 
 crawlCall :: Symbol -> [Expr] -> Token -> Verification IRValue
 crawlCall name argExprs token =
-  do
-    fnM <- lookupFunction name token
-    fnM `failOrM` (
-      \fn@(Function params returnType _) ->
-        if (arity fn) /= (length argExprs) then
-          fail (ArityMismatch name (arity fn) $ length argExprs) token
-        else
-          (mapMSequA crawlExpr argExprs) `andIfValidMV` (
-            \args -> do
-              let pairs     = List.zip (map snd params) args
-              let mismatchM = find (\(paramT, IRValue _ argT) -> not $ paramT `isSubtypeOf` argT) pairs
-              case mismatchM of
-                Just (paramT, IRValue expr typ) -> fail (TypeMismatch paramT typ) expr.token
-                Nothing                         -> win $ IRValue (CallExpr name argExprs token) returnType
-            )
-      )
+  (lookupFunction name token) `andIfValidMV` (
+    \fn@(Function params returnType _) ->
+      if (arity fn) /= (length argExprs) then
+        fail (ArityMismatch name (arity fn) $ length argExprs) token
+      else
+        (mapMSequA crawlExpr argExprs) `andIfValidMV` (
+          \args -> do
+            let pairs     = List.zip (map snd params) args
+            let mismatchM = find (\(paramT, IRValue _ argT) -> not $ paramT `isSubtypeOf` argT) pairs
+            case mismatchM of
+              Just (paramT, IRValue expr typ) -> fail (TypeMismatch paramT typ) expr.token
+              Nothing                         -> win $ IRValue (CallExpr name argExprs token) returnType
+          )
+    )
   where
     lookupFunction :: Symbol -> Token -> Verification Function
     lookupFunction name' token' =
