@@ -130,8 +130,8 @@ allTests =
   , fail  "test64" "Error: `for` with non-`Unit` body"                                               $ (AError $ TypeMismatch Type.Unit Type.Int) :| []
   , pass  "test65" "Forward type reference in record type"                                           $ Just $ TString ""
   , pass  "test66" "Forward nominal type reference"                                                  $ Just $ TString ""
-  , skip  "queens" "SKIP: 8-queens benchmark program" -- TODO: Enable, once we have a standard library
-  , skip  "merge"  "SKIP: merge-sort benchmark program" -- TODO: Enable, once we have a standard library
+  , pass  "queens" "8-queens benchmark program"                                                      $ Just $ TUnit
+  , pass  "merge"  "merge-sort benchmark program"                                                    $ Nothing -- Reads user input
   ]
 
 pass :: Text -> Text -> Maybe TigerValue -> TigerTest
@@ -140,8 +140,8 @@ pass name desc valueM = named name desc $ Pass valueM
 fail :: Text -> Text -> NonEmpty TigerError -> TigerTest
 fail name desc errs = named name desc $ Fail errs
 
-skip :: Text -> Text -> TigerTest
-skip name desc = named name desc Skip
+_skip :: Text -> Text -> TigerTest
+_skip name desc = named name desc Skip
 
 named :: Text -> Text -> TigerTestResult -> TigerTest
 named name desc expected =

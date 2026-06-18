@@ -13,6 +13,7 @@ import Tiger.Analyzer.Internal.Common(
   )
 
 import Tiger.Analyzer.Internal.IRValue(IRValue)
+import Tiger.Analyzer.Internal.Primitives(primitives)
 import Tiger.Analyzer.Internal.Scope(Environment(Env), Scope(Scope))
 
 import Data.List.NonEmpty qualified as NE
@@ -26,10 +27,12 @@ analyze = verify
 verify :: Expr -> Validated IRValue
 verify expr = evalState (crawlAST expr) initialState
   where
-    env = Env Map.empty Map.empty Map.empty
+    (primsEnv, primsState) = primitives
+
+    env = Env primsEnv Map.empty Map.empty
 
     initialState =
-      AnalyzerState { functions     = Map.empty
+      AnalyzerState { functions     = primsState
                     , lastScopeAddr = ScopeAddress 0
                     , isInFor       = False
                     , isInWhile     = False
