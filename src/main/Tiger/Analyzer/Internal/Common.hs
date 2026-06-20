@@ -156,10 +156,10 @@ typeErrorOr :: (Type, Type, Token) -> Verification a -> Verification a
 stackFrame :: Verification a -> Verification a
 stackFrame fv = pushScope *> fv <* popScope
 
-updateEnv :: (Environment -> Environment) -> State AnalyzerState ()
+updateEnv :: (Environment -> Environment) -> Stately ()
 updateEnv f = updateScope $ \s -> s { environ = f s.environ }
 
-updateScope :: (Scope -> Scope) -> State AnalyzerState ()
+updateScope :: (Scope -> Scope) -> Stately ()
 updateScope f = modify $ \s -> s { scopes = case scopes s of h :| t -> (f h) :| t }
 
 fail :: AnalyzerErrorType -> Token -> Verification a
