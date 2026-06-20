@@ -41,7 +41,7 @@ formatErrorMessage source (BadAnalysis analyzerError) = formatAnalyzerError sour
 
 formatParserError :: Text -> ParserError -> Text
 formatParserError source (ParserError typ (SourceLoc path line column)) =
-    formatError path source line column errCode message howTo "?"
+    formatError path source line column errCode message (Just howTo) "?"
   where
     (message, howTo, errCodeNum) = formatParserErrorType typ
     errCode                      = "P" <> (showText errCodeNum)
@@ -52,7 +52,7 @@ formatParserErrorType BadSyntax = ("Unexpected token", "Write valid Tiger code",
 
 formatAnalyzerError :: Text -> AnalyzerError -> Text
 formatAnalyzerError source (AnalyzerError typ token) =
-    formatError path source line column errCode message howTo $ delex tokenType
+    formatError path source line column errCode message (Just howTo) $ delex tokenType
   where
     Token tokenType (SourceLoc path line column) = token
     (message, howTo, errCodeNum)                 = formatAnalyzerErrorType tokenType typ

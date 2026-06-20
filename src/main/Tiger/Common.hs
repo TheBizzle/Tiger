@@ -4,11 +4,11 @@ import Data.List qualified as List
 import Data.Text qualified as Text
 
 
-formatError :: FilePath -> Text -> Word -> Word -> Text -> Text -> Text -> Text -> Text
-formatError filepath source lineNum columnNum errCode errorMessage howToFix offender =
+formatError :: FilePath -> Text -> Word -> Word -> Text -> Text -> Maybe Text -> Text -> Text
+formatError filepath source lineNum columnNum errCode errorMessage howToFixM offender =
     path <> ":" <> lineNumStr <> ":" <> columnNumStr <> ": error: [Tiger-" <> errCode <> "]\n" <>
       "     " <> errorMessage <> "\n" <>
-      "     Suggested fix: " <> howToFix <> "\n" <>
+      optionalFixLine <>
       "    |\n" <>
       paddedLineNum <> " | " <> (sanitize line) <> "\n" <>
       "    | " <> spacing <> carets
@@ -21,6 +21,8 @@ formatError filepath source lineNum columnNum errCode errorMessage howToFix offe
     internalErrorMsg = "<INTERNAL ERROR: No such line - " <> (showText lineNum) <> ">"
     spacing          = Text.replicate (fromIntegral $ columnNum - 1) " "
     carets           = Text.replicate         (Text.length offender) "^"
+
+    optionalFixLine = maybe "" (\howToFix -> "     Suggested fix: " <> howToFix <> "\n") howToFixM
 
     sanitize = Text.map $ \c -> if c == '\t' then ' ' else c
 

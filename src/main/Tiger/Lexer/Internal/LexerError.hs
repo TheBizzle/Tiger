@@ -8,7 +8,7 @@ import Data.Text qualified as Text
 
 mungeError :: FilePath -> Text -> Word -> Word -> Word -> Text
 mungeError filepath source offset line column =
-    formatError filepath source line column "L0" errorMessage howToFix badBoy
+    formatError filepath source line column "L0" errorMessage (Just howToFix) badBoy
   where
     errorMessage = "Unexpected character: " <> badBoy
     howToFix     = "Use a valid character instead" :: Text
