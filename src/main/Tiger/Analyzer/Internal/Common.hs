@@ -2,9 +2,9 @@ module Tiger.Analyzer.Internal.Common(
     AnalyzerState( AnalyzerState, functions, isInFor, isInWhile, lastScopeAddr, nextUniqueID, protecteds
                  , scopes, types, vars
                  )
-  , andIfValidMV, err, fail, findFieldAddr, findInEnv, isSubtypeOf, lookupTypeAddrOfSym, lookupTypeOf
-  , lookupTypeOfSym, mapMSequA, resolveTypeAddr, Stately, stackFrame, succeed, typeErrorOr, updateEnv
-  , Validated, Verification, win
+  , andIfValidMV, err, fail, findFieldAddr, findInEnv, flattenVM, isSubtypeOf, lookupTypeAddrOfSym
+  , lookupTypeOf, lookupTypeOfSym, mapMSequA, resolveTypeAddr, Stately, stackFrame, succeed, typeErrorOr
+  , updateEnv, Validated, Verification, win
   ) where
 
 import Control.Monad.State.Lazy(gets, modify)
@@ -125,6 +125,9 @@ mapMSequA f xs =
   do
     resVs <- mapM f xs
     return $ sequenceA resVs
+
+flattenVM :: Monad m => Validation fs (m (Validation fs a)) -> m (Validation fs a)
+flattenVM = validation (Failure &> return) id
 
 popScope :: Stately ()
 popScope = modify helper

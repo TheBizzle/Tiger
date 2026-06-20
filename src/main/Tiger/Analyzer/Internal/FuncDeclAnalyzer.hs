@@ -20,7 +20,8 @@ import Tiger.Analyzer.Internal.AnalyzerError(AnalyzerErrorType(DuplicateFunc, No
 
 import Tiger.Analyzer.Internal.Common(
     AnalyzerState(functions, scopes)
-  , andIfValidMV, fail, lookupTypeOfSym, mapMSequA, resolveTypeAddr, succeed, typeErrorOr, Verification, win
+  , andIfValidMV, fail, flattenVM, lookupTypeOfSym, mapMSequA, resolveTypeAddr, succeed, typeErrorOr
+  , Verification, win
   )
 
 import Tiger.Analyzer.Internal.Function(Function(Function))
@@ -38,8 +39,7 @@ crawlFuncDecl crawlExpr (FuncDecl funcName fields typePairM body token) =
     paramsV     <- getCompose $ traverse compose $ map toTriple fields
     returnTypeV <- maybe (win Unit) (uncurry $ flip lookupTypeOfSym) typePairM
     bodyLetV    <- synthesizeLet body fields
-    let tripleV  = ((,,) <$> paramsV <*> returnTypeV <*> bodyLetV)
-    tripleV `failOrM` (uncurry3 $ registerFunction crawlExpr token funcName)
+    flattenVM $ (registerFunction crawlExpr token funcName) <$> paramsV <*> returnTypeV <*> bodyLetV
   where
     compose (z, b, tok) = Compose $ (map (z, ) <$> lookupTypeOfSym tok b)
 

@@ -27,8 +27,8 @@ import Tiger.Analyzer.Internal.AnalyzerError(
 
 import Tiger.Analyzer.Internal.Common(
     AnalyzerState(functions, isInFor, isInWhile, protecteds)
-  , andIfValidMV, err, fail, findInEnv, isSubtypeOf, lookupTypeOfSym, mapMSequA, resolveTypeAddr, scopes
-  , stackFrame, typeErrorOr, Verification, win
+  , andIfValidMV, err, fail, findInEnv, flattenVM, isSubtypeOf, lookupTypeOfSym, mapMSequA, resolveTypeAddr
+  , scopes, stackFrame, typeErrorOr, Verification, win
   )
 
 import Tiger.Analyzer.Internal.DeclAnalyzer(crawlDecls)
@@ -88,7 +88,7 @@ crawlAssign lValue rValue token =
   do
     leftV  <- crawlLValue crawlExpr True lValue
     rightV <- crawlExpr rValue
-    ((,) <$> leftV <*> rightV) `failOrM` (uncurry buildAssignment)
+    flattenVM $ buildAssignment <$> leftV <*> rightV
   where
     buildAssignment (IRValue _ lType) (IRValue rExpr rType) =
       (rType, lType, rExpr.token) `typeErrorOr` do
@@ -138,15 +138,15 @@ crawlFor varName isEscape lowerB upperB body token =
     modify $ \s -> s { isInFor = True }
 
     lowerV <- crawlExpr lowerB
+    upperV <- crawlExpr upperB
     varV   <- crawlDecls crawlExpr $ NE.singleton $ VariableDecl $ VarDecl varName True Nothing lowerB token
 
     (Scope _ addr) :| _ <- gets scopes
     let varAddr          = NamedVarAddress varName addr
     modify $ \s -> s { protecteds = varAddr `Set.insert` s.protecteds }
 
-    upperV <- crawlExpr upperB
     bodyV  <- crawlExpr body
-    res    <- ((,,) <$> (varV *> lowerV) <*> upperV <*> bodyV) `failOrM` (uncurry3 buildFor)
+    res    <- flattenVM $ buildFor <$> (varV *> lowerV) <*> upperV <*> bodyV
 
     modify $ \s -> s { isInFor = wasInFor }
     return res
@@ -162,11 +162,11 @@ crawlIf antecedent consequent alternativeM token =
     do
       anteV    <- crawlExpr antecedent
       conseqV  <- crawlExpr consequent
-      altMV    <- traverse crawlExpr alternativeM
+      altMV    <- mapM crawlExpr alternativeM
       let altV  = sequenceA altMV
-      ((,,) <$> anteV <*> conseqV <*> altV) `failOrM` checkIf
+      flattenVM $ checkIf <$> anteV <*> conseqV <*> altV
   where
-    checkIf ((IRValue anteExpr anteType), (IRValue conseqExpr conseqType), altM) =
+    checkIf (IRValue anteExpr anteType) (IRValue conseqExpr conseqType) altM =
       (anteType, Type.Int, anteExpr.token) `typeErrorOr`
         case altM of
           Just (IRValue altExpr altType) ->
@@ -283,12 +283,12 @@ crawlWhile cond body token =
 
     condV <- crawlExpr cond
     bodyV <- crawlExpr body
-    res   <- ((,) <$> condV <*> bodyV) `failOrM` buildWhile
+    res   <- flattenVM $ buildWhile <$> condV <*> bodyV
 
     modify $ \s -> s { isInWhile = wasInWhile }
     return res
   where
-    buildWhile ((IRValue condExpr condType), (IRValue bodyExpr bodyType)) =
+    buildWhile (IRValue condExpr condType) (IRValue bodyExpr bodyType) =
       (condType, Type.Int, condExpr.token) `typeErrorOr` do
       (bodyType,     Unit, bodyExpr.token) `typeErrorOr` do
         win $ IRValue (WhileExpr cond body token) bodyType
