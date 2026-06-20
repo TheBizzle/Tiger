@@ -1,4 +1,4 @@
-module Tiger.Analyzer.Internal.Primitives(primitives) where
+module Tiger.Analyzer.Internal.Primitives(primitives, primArgs) where
 
 import Tiger.Lexer.Token(SourceLoc(SourceLoc), Token(Token), TokenType(Semicolon))
 
@@ -16,6 +16,9 @@ import Tiger.Analyzer.Internal.Type qualified as Type
 
 primitives :: (Map Symbol FuncInfo, Map FuncAddress Function)
 primitives = (env, state)
+
+primArgs :: Map Symbol [Symbol]
+primArgs = Map.fromList $ map toArgPair triples
 
 env :: Map Symbol FuncInfo
 env = Map.fromList $ map (fst3 &> (Symbol &&& (toAddress &> FIAddress))) triples
@@ -45,6 +48,9 @@ toEntry (name, args, returnType) = (toAddress name, func)
 
 toAddress :: Text -> FuncAddress
 toAddress name = FuncAddress (Symbol name) $ ScopeAddress 0
+
+toArgPair :: (Text, [(Text, Type)], Type) -> (Symbol, [Symbol])
+toArgPair (name, args, _) = (Symbol name, map (fst &> Symbol) args)
 
 toIRValue :: Type -> IRValue
 toIRValue typ = IRValue (toBody typ) typ
