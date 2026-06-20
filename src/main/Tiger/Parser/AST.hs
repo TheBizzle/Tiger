@@ -6,8 +6,8 @@ import Tiger.Parser.Internal.AST(
   , Expr( ArrayExpr, AssignExpr, BreakExpr, CallExpr, ForExpr, IfExpr, IntExpr, LetExpr, LValueExpr, NilExpr
         , OpExpr, RecordExpr, SeqExpr, StringExpr, token, WhileExpr)
   , Field(Field, fieldName)
-  , FuncDecl(FuncDecl)
-  , LValue(ArrayIndex, Variable, RecordField)
+  , FuncDecl(FuncDecl, funcDeclName)
+  , LValue(ArrayIndex, lValToken, RecordField, Variable)
   , Operator(DivideOp, EqualsOp, GreaterOrEqualsOp, GreaterThanOp, LessOrEqualsOp, LessThanOp, MinusOp
             , NotEqualsOp, PlusOp, TimesOp)
   , Symbol(Symbol, symbolText)
