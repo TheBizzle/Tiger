@@ -7,7 +7,7 @@ import Test.Tasty(TestTree, defaultMain, testGroup)
 import Test.Tasty.HUnit(assertFailure, HasCallStack, testCase)
 
 import Tiger.Compiler(compileForTest)
-import Tiger.ErrorParser(CompilationError(BadParse, BadAnalysis), formatErrorOutput)
+import Tiger.ErrorParser(CompilationError(BadAnalysis, BadEval, BadParse), formatErrorOutput)
 
 import Tiger.Parser.AST(Symbol(Symbol))
 import Tiger.Parser.ParserError(ParserError(ParserError), ParserErrorType(Aborted, BadSyntax))
@@ -22,7 +22,11 @@ import Tiger.Analyzer.AnalyzerError(
                      )
   )
 import Tiger.Analyzer.Internal.Address(TypeAddress(IntAddress, StringAddress))
+import Tiger.Analyzer.Internal.IRValue(IRValue(irvExpr))
 import Tiger.Analyzer.Internal.Type(Type(Array, Named, Record), UniqueID(UniqueID))
+
+import Tiger.Evaluator.Evaluator(eval)
+import Tiger.Evaluator.Value(Value(TArray, TInt, TNil, TRecord, TString, TUnit))
 
 import Data.List.NonEmpty           qualified as NE
 import Data.Map                     qualified as Map
@@ -31,7 +35,7 @@ import Tiger.Analyzer.Internal.Type qualified as Type
 
 
 data TigerTestResult
-  = Pass (Maybe TigerValue) -- `Nothing` => Infinite loop
+  = Pass (Maybe Value) -- `Nothing` => Don't run it
   | Fail (NonEmpty TigerError)
   | Skip
   deriving Show
@@ -50,15 +54,6 @@ data TigerError
   | AError { aError :: AnalyzerErrorType }
   deriving Show
 
-data TigerValue
-  = TArray  { tarray :: [TigerValue] }
-  | TInt    { tint   :: Word }
-  | TNil
-  | TRecord { trecord :: Map Text TigerValue, trName :: Text }
-  | TString { tstring :: Text }
-  | TUnit
-  deriving (Eq, Show)
-
 main :: IO ()
 main = defaultMain $ testGroup "Tiger" [testGroup "enabled" $ map makeTest allTests]
 
@@ -66,9 +61,9 @@ allTests :: [TigerTest]
 allTests =
   [ pass  "test1"  "Array type and array variable"                                                   $ Just $ TArray $ map TInt [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
   , pass  "test2"  "`arr1` is valid since expression 0 is int = myint"                               $ Just $ TArray $ map TInt [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-  , pass  "test3"  "A record type and a record variable"                                             $ Just $ TRecord (Map.fromList [("name", TString "Somebody"), ("age", TInt 1000)]) "rectype"
+  , pass  "test3"  "A record type and a record variable"                                             $ Just $ TRecord (Map.fromList [(Symbol "name", TString "Somebody"), (Symbol "age", TInt 1000)]) $ Symbol "rectype"
   , pass  "test4"  "Recursive function"                                                              $ Just $ TInt 3628800
-  , pass  "test5"  "Recursive types"                                                                 $ Just $ TRecord (Map.fromList [("hd", TInt 0), ("tl", TNil)]) "intlist"
+  , pass  "test5"  "Recursive types"                                                                 $ Just $ TRecord (Map.fromList [(Symbol "hd", TInt 0), (Symbol "tl", TNil)]) $ Symbol "intlist"
   , pass  "test6"  "Mutually recursive procedures"                                                   $ Nothing -- Infinite loop
   , pass  "test7"  "Mutually recursive functions"                                                    $ Nothing -- Infinite loop
   , pass  "test8"  "`if`"                                                                            $ Just $ TInt 40
@@ -116,7 +111,7 @@ allTests =
   , pass  "test50" "Referencing record type param"                                                   $ Just $ TInt 0
   , pass  "test51" "Reference `for` variable"                                                        $ Just $ TUnit
   , pass  "test52" "`nil` return from `if`+`else` branch"                                            $ Just $ TNil
-  , pass  "test53" "`if`+`else` in function"                                                         $ Just $ TRecord (Map.fromList [("first", TInt 2), ("rest", TNil)]) "list"
+  , pass  "test53" "`if`+`else` in function"                                                         $ Just $ TRecord (Map.fromList [(Symbol "first", TInt 2), (Symbol "rest", TNil)]) $ Symbol "list"
   , fail  "test54" "Error: Variable defined in terms of self"                                        $ (AError $ VarCannotInitInTermsOfSelf) :| []
   , fail  "test55" "Error: Redundant field in record declaration"                                    $ (AError $ DuplicateFieldInType) :| []
   , fail  "test56" "Error: Redundant field in record instantiation"                                  $ (AError $ DuplicateFieldInInst) :| []
@@ -134,7 +129,7 @@ allTests =
   , pass  "merge"  "merge-sort benchmark program"                                                    $ Nothing -- Reads user input
   ]
 
-pass :: Text -> Text -> Maybe TigerValue -> TigerTest
+pass :: Text -> Text -> Maybe Value -> TigerTest
 pass name desc valueM = named name desc $ Pass valueM
 
 fail :: Text -> Text -> NonEmpty TigerError -> TigerTest
@@ -168,13 +163,27 @@ makeTest test = testCase (asString $ testName test <> ": " <> desc test) runIt
           src      <- TIO.readFile path
           fullPath <- makeAbsolute path
           case (compileForTest (fullPath, src), test.expected) of
-            (             _, Skip        ) -> return ()
-            (Success      _, Pass       _) -> return ()
-            (Success      _, Fail reasons) -> assertFail $ shouldHaveFailedMsg     test.desc reasons
-            (Failure errors, Pass       _) -> assertFail $ shouldHavePassedMsg src test.desc  errors
-            (Failure errors, Fail reasons) -> checkFailureMatch src (NE.toList errors) $ NE.toList reasons
+            (             _, Skip         ) -> return ()
+            (Success      _, Fail  reasons) -> assertFail $ shouldHaveFailedMsg     test.desc reasons
+            (Failure errors, Pass        _) -> assertFail $ shouldHavePassedMsg src test.desc  errors
+            (Failure errors, Fail  reasons) -> checkFailureMatch src (NE.toList errors) $ NE.toList reasons
+            (Success      _, Pass  Nothing) -> return ()
+            (Success actual, Pass expected) -> do
+              valueV <- eval actual.irvExpr
+              checkSuccessMatch src expected valueV
         else
           assertFail $ "Fixture file not found: " <> (asText path)
+
+    checkSuccessMatch _ Nothing (Success y) =
+      assertFail $ "At runtime, expected the code to fail, but succeeded with `" <> (showText y) <> "`."
+    checkSuccessMatch _ (Just x) (Success y) | x /= y =
+      assertFail $ "At runtime, expected: `" <> (showText x) <> "`\n" <>
+                   "But got:              `" <> (showText y) <> "`"
+    checkSuccessMatch src (Just x) (Failure errors) =
+      assertFail $ "At runtime, expected `" <> (showText x) <> "`, but the code failed:\n" <>
+        (formatErrorOutput src $ map BadEval errors)
+    checkSuccessMatch _ _ _ =
+      return ()
 
     checkFailureMatch   _         []          [] = return ()
     checkFailureMatch src     errors          [] = assertFail $ "Unexpected errors:\n" <> (formatErrorOutput src $ NE.fromList errors)

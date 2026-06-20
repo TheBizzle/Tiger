@@ -1,4 +1,4 @@
-module Tiger.ErrorParser(formatErrorOutput, CompilationError(BadAnalysis, BadLex, BadParse)) where
+module Tiger.ErrorParser(formatErrorOutput, CompilationError(BadAnalysis, BadEval, BadLex, BadParse)) where
 
 import Tiger.Common(formatError)
 
@@ -19,14 +19,19 @@ import Tiger.Analyzer.AnalyzerError(
 
 import Tiger.Analyzer.Type(Type(Array, Int, Named, Nil, Record, String, Unit), UniqueID(UniqueID))
 
-import Data.List.NonEmpty qualified as NE
-import Data.Text          qualified as Text
+import Tiger.Evaluator.EvaluatorError(EvaluatorError(EvaluatorError))
+
+import Tiger.Evaluator.EvaluatorError qualified as EvalError
+import Tiger.Evaluator.Type           qualified as EvalType
+import Data.List.NonEmpty             qualified as NE
+import Data.Text                      qualified as Text
 
 
 data CompilationError
-  = BadLex      { blError ::          Text }
-  | BadParse    { bpError ::   ParserError }
-  | BadAnalysis { baError :: AnalyzerError }
+  = BadLex      { blError ::           Text }
+  | BadParse    { bpError ::    ParserError }
+  | BadAnalysis { baError ::  AnalyzerError }
+  | BadEval     { beError :: EvaluatorError }
   deriving Show
 
 formatErrorOutput :: Text -> NonEmpty CompilationError -> Text
@@ -36,8 +41,9 @@ formatErrorOutput source = (map $ formatErrorMessage source) &> NE.toList &> (Te
 -- errors in `Grammar.x`/`LexerError.hs`. --Jason B. (6/6/26)
 formatErrorMessage :: Text -> CompilationError -> Text
 formatErrorMessage      _ (BadLex            errText) = errText
-formatErrorMessage source (BadParse      parserError) = formatParserError   source parserError
+formatErrorMessage source (BadParse      parserError) = formatParserError   source   parserError
 formatErrorMessage source (BadAnalysis analyzerError) = formatAnalyzerError source analyzerError
+formatErrorMessage source (BadEval         evalError) = formatEvalError     source     evalError
 
 formatParserError :: Text -> ParserError -> Text
 formatParserError source (ParserError typ (SourceLoc path line column)) =
@@ -161,6 +167,24 @@ formatAnalyzerErrorType tokType VarCannotInitInTermsOfSelf =
   where
     msg = "`" <> (delex tokType) <> "` cannot be defined in terms of itself"
 
+formatEvalError :: Text -> EvaluatorError -> Text
+formatEvalError source (EvaluatorError typ token) =
+    formatError path source line column errCode message Nothing $ delex tokenType
+  where
+    Token tokenType (SourceLoc path line column) = token
+    (message, errCodeNum)                        = formatEvalErrorType tokenType typ
+    errCode                                      = "E" <> (showText errCodeNum)
+
+formatEvalErrorType :: TokenType -> EvalError.EvaluatorErrorType -> (Text, Word)
+formatEvalErrorType       _  EvalError.DivisionByZero             = ("Division by zero"         , 0)
+formatEvalErrorType       _  EvalError.IllegalBreak               = ("Illegal `break` statement", 1)
+formatEvalErrorType       _  EvalError.NoSuchFn                   = ("No such function"         , 2)
+formatEvalErrorType       _  EvalError.NoSuchVar                  = ("No such variable"         , 3)
+formatEvalErrorType tokType (EvalError.TypeMismatch expected got) = (msg                        , 4)
+  where
+    msg = "Could not match expected type `" <> (estr2 expected) <> "` with actual type `" <> (estr2 got) <>
+            "`, regarding value `" <> (delex tokType) <> "`"
+
 str :: Type -> Text
 str (Array _ (UniqueID uid))         = "an `array_" <> (showText uid)
 str Int                              = "an int"
@@ -178,6 +202,14 @@ str2 Nil                              = "nil"
 str2 (Record fields (UniqueID uid))   = "record_" <> (showText uid) <> "{ " <> (strFields $ map fst fields) <> " }"
 str2 String                           = "string"
 str2 Unit                             = "undefined"
+
+estr2 :: EvalType.Type -> Text
+estr2  EvalType.Array          = "array"
+estr2  EvalType.Int            = "int"
+estr2  EvalType.Nil            = "nil"
+estr2 (EvalType.Record fields) = "record{ " <> (strFields fields) <> " }"
+estr2  EvalType.String         = "string"
+estr2  EvalType.Unit           = "undefined"
 
 strFields :: [Symbol] -> Text
 strFields = map (\(Symbol n) -> n) &> Text.intercalate ", "
