@@ -30,12 +30,11 @@ import Tiger.Evaluator.Internal.Value(ControlFlow)
 import Data.Map qualified as Map
 
 
-evalDecls :: (Expr -> Evaluation ControlFlow) -> NonEmpty Decl -> Evaluation ()
+evalDecls :: (Expr -> Evaluation ControlFlow) -> [Decl] -> Evaluation ()
 evalDecls evaluExpr decls =
   do
-    resNE    <- mapM (evalDecl evaluExpr) decls
-    let resV  = sequenceA resNE
-    return $ resV $> ()
+    results <- mapM (evalDecl evaluExpr) decls
+    return $ sequenceA_ results
 
 evalDecl :: (Expr -> Evaluation ControlFlow) -> Decl -> Evaluation ()
 evalDecl _ (FunctionDecl (FuncDecl name params _ body _)) =

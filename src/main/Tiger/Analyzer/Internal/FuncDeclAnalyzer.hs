@@ -46,10 +46,7 @@ crawlFuncDecl crawlExpr (FuncDecl funcName fields typePairM body token) =
     toTriple (Field name typ _ typeToken) = (name, typ, typeToken)
 
 synthesizeLet :: Expr -> [Field] -> Verification Expr
-synthesizeLet body fields =
-  case nonEmpty fields of
-    Nothing -> win body
-    Just fs -> (mapMSequA makeDecl fs) `andIfValidMV` makeLet
+synthesizeLet body fields = (mapMSequA makeDecl fields) `andIfValidMV` makeLet
   where
     makeLet decls = win $ LetExpr decls body body.token
 

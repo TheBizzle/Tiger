@@ -49,10 +49,8 @@ data DeclBatch
   | TypeBatch { _tbDecls :: NonEmpty TypeDeclEntry }
   |  VarBatch { _vbDecls :: NonEmpty       VarDecl }
 
-crawlDecls :: (Expr -> Verification IRValue) -> NonEmpty Decl -> Verification ()
-crawlDecls crawlExpr decls = (mapMSequA (crawlBatch crawlExpr) batches) <&> ($> ())
-  where
-    batches = NE.fromList $ buildBatches $ NE.toList decls
+crawlDecls :: (Expr -> Verification IRValue) -> [Decl] -> Verification ()
+crawlDecls crawlExpr decls = (mapMSequA (crawlBatch crawlExpr) $ buildBatches decls) <&> ($> ())
 
 buildBatches :: [Decl] -> [DeclBatch]
 buildBatches = (groupBy sameConstructor) &> (map groupToBatch)

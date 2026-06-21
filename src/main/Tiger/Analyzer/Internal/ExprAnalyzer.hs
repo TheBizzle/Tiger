@@ -39,7 +39,6 @@ import Tiger.Analyzer.Internal.Scope(Environment(envFuncs), FuncInfo(FIAddress, 
 import Tiger.Analyzer.Internal.Type(Type(Array, Record, Unit), UniqueID(UniqueID))
 
 import Data.List                    qualified as List
-import Data.List.NonEmpty           qualified as NE
 import Data.Map                     qualified as Map
 import Data.Set                     qualified as Set
 import Tiger.Analyzer.Internal.Type qualified as Type
@@ -139,7 +138,7 @@ crawlFor varName lowerB upperB body token =
 
     lowerV <- crawlExpr lowerB
     upperV <- crawlExpr upperB
-    varV   <- crawlDecls crawlExpr $ NE.singleton $ VariableDecl $ VarDecl varName Nothing lowerB token
+    varV   <- crawlDecls crawlExpr [VariableDecl $ VarDecl varName Nothing lowerB token]
 
     (Scope _ addr) :| _ <- gets scopes
     let varAddr          = NamedVarAddress varName addr
@@ -178,7 +177,7 @@ crawlIf antecedent consequent alternativeM token =
 
     buildIf ante conseq altM typ = win $ IRValue (IfExpr ante conseq altM token) typ
 
-crawlLet :: NonEmpty Decl -> Expr -> Token -> Verification IRValue
+crawlLet :: [Decl] -> Expr -> Token -> Verification IRValue
 crawlLet decls body token =
   stackFrame $ do
     declsV <- crawlDecls crawlExpr decls

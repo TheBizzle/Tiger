@@ -119,7 +119,7 @@ evalCall name argExprs token =
         (    Nothing, UserDefinedBody  expr) -> evalExpr expr
         (Just argsNE,                     _) -> do
           let pairs = NE.zip (NE.fromList paramNames) argsNE
-          let decls = map (\(aName, aVal) -> VariableDecl $ VarDecl aName Nothing aVal token) pairs
+          let decls = NE.toList $ map (\(vName, val) -> VariableDecl $ VarDecl vName Nothing val token) pairs
           case body of
             PrimitiveBody   pbody -> evalLetBase decls $ Left pbody
             UserDefinedBody  expr -> evalLet     decls expr
@@ -140,12 +140,12 @@ evalFor varName lowerB upperB body token =
     upperV <- evalInt upperB
     flattenVM $ runFor <$> lowerV <*> upperV
   where
-    synthesizeLet name i = NE.singleton $ VariableDecl $ VarDecl name Nothing (IntExpr i token) token
+    synthesizeLet name i = VariableDecl $ VarDecl name Nothing (IntExpr i token) token
 
     runFor :: Int -> Int -> Evaluation ControlFlow
     runFor i upper =
       if i <= upper then
-        (stackFrame $ (evalDecls evalExpr $ synthesizeLet varName i) >> (evalExpr body)) `andIfValidMV` (
+        (stackFrame $ (evalDecls evalExpr [synthesizeLet varName i]) >> (evalExpr body)) `andIfValidMV` (
           \case
             Break _ -> winCF TUnit
             _       -> runFor (i + 1) upper
@@ -161,10 +161,10 @@ evalIf antecedent consequent alternativeM =
       False -> maybe (winCF TUnit) evalExpr alternativeM
     )
 
-evalLet :: NonEmpty Decl -> Expr -> Evaluation ControlFlow
+evalLet :: [Decl] -> Expr -> Evaluation ControlFlow
 evalLet decls body = evalLetBase decls $ Right body
 
-evalLetBase :: NonEmpty Decl -> Either (Evaluation Value) Expr -> Evaluation ControlFlow
+evalLetBase :: [Decl] -> Either (Evaluation Value) Expr -> Evaluation ControlFlow
 evalLetBase decls bodyE =
   stackFrame $ (evalDecls evalExpr decls) `andIfValidMV` (const $ either wrapCF evalExpr bodyE)
 

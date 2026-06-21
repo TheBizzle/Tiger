@@ -51,7 +51,7 @@ data Expr
   | IntExpr { intValue :: Int
             , token    :: Token
             }
-  | LetExpr { letDecls :: NonEmpty Decl
+  | LetExpr { letDecls :: [Decl]
             , letBody  :: Expr
             , token    :: Token
             }

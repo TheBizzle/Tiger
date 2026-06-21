@@ -122,8 +122,8 @@ expr
   | '(' exprseq ')' { AST.SeqExpr $2 $1 }
   | '('         ')' { AST.SeqExpr [] $1 }
 
-  | Let decls In exprseq End { AST.LetExpr (NE.reverse $2) (AST.SeqExpr $4 $3) $1 }
-  | Let decls In         End { AST.LetExpr (NE.reverse $2) (AST.SeqExpr [] $3) $1 }
+  | Let decls In exprseq End { AST.LetExpr (NE.toList $ NE.reverse $2) (AST.SeqExpr $4 $3) $1 }
+  | Let decls In         End { AST.LetExpr (NE.toList $ NE.reverse $2) (AST.SeqExpr [] $3) $1 }
 
   | IDENT '{' fieldinits '}' { let name = ident $1 in AST.RecordExpr $3 name $1 }
   | IDENT '{'            '}' { let name = ident $1 in AST.RecordExpr [] name $1 }
