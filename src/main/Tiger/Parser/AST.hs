@@ -6,12 +6,12 @@ import Tiger.Parser.Internal.AST(
   , Expr( ArrayExpr, AssignExpr, BreakExpr, CallExpr, ForExpr, IfExpr, IntExpr, LetExpr, LValueExpr, NilExpr
         , OpExpr, RecordExpr, SeqExpr, StringExpr, token, WhileExpr)
   , Field(Field, fieldName)
-  , FuncDecl(FuncDecl, funcDeclName)
+  , FuncDecl(FuncDecl, funcDeclBody, funcDeclName, funcDeclParams)
   , LValue(ArrayIndex, lValToken, RecordField, Variable)
   , Operator(DivideOp, EqualsOp, GreaterOrEqualsOp, GreaterThanOp, LessOrEqualsOp, LessThanOp, MinusOp
             , NotEqualsOp, PlusOp, TimesOp)
   , Symbol(Symbol, symbolText)
   , Type(ArrayType, NamedType, RecordType)
   , TypeDeclEntry(TypeDeclEntry, typeDeclName, typeDeclToken)
-  , VarDecl(VarDecl)
+  , VarDecl(VarDecl, varInit, varName)
   )

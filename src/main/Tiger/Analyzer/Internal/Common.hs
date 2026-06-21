@@ -153,7 +153,7 @@ typeErrorOr :: (Type, Type, Token) -> Verification a -> Verification a
   else
     alt
 
-stackFrame :: Verification a -> Verification a
+stackFrame :: Stately a -> Stately a
 stackFrame fv = pushScope *> fv <* popScope
 
 updateEnv :: (Environment -> Environment) -> Stately ()
