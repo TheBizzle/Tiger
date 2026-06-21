@@ -49,21 +49,21 @@ crawlAST :: Expr -> Verification IRValue
 crawlAST expr = crawlExpr expr
 
 crawlExpr :: Expr -> Verification IRValue
-crawlExpr      (ArrayExpr typeName size init           token) = crawlNewArray typeName size init token
-crawlExpr      (AssignExpr lValue rValue               token) = crawlAssign lValue rValue token
-crawlExpr      (BreakExpr                              token) = crawlBreak token
-crawlExpr      (CallExpr name args                     token) = crawlCall name args token
-crawlExpr      (ForExpr varName isE lowerB upperB body token) = crawlFor varName isE lowerB upperB body token
-crawlExpr      (IfExpr ante conseq alt                 token) = crawlIf ante conseq alt token
-crawlExpr this@(IntExpr _                                  _) = win $ IRValue this Type.Int
-crawlExpr      (LetExpr decls body                     token) = crawlLet decls body token
-crawlExpr      (LValueExpr lValue                          _) = crawlLValue crawlExpr False lValue
-crawlExpr this@(NilExpr                                    _) = win $ IRValue this Type.Nil
-crawlExpr this@(OpExpr left op right                       _) = crawlOperator left op right this
-crawlExpr      (RecordExpr fields typeName             token) = crawlRecord fields typeName token
-crawlExpr this@(SeqExpr statements                         _) = crawlStatements statements this
-crawlExpr this@(StringExpr _                               _) = win $ IRValue this Type.String
-crawlExpr      (WhileExpr cond body                    token) = crawlWhile cond body token
+crawlExpr      (ArrayExpr typeName size init       token) = crawlNewArray typeName size init token
+crawlExpr      (AssignExpr lValue rValue           token) = crawlAssign lValue rValue token
+crawlExpr      (BreakExpr                          token) = crawlBreak token
+crawlExpr      (CallExpr name args                 token) = crawlCall name args token
+crawlExpr      (ForExpr varName lowerB upperB body token) = crawlFor varName lowerB upperB body token
+crawlExpr      (IfExpr ante conseq alt             token) = crawlIf ante conseq alt token
+crawlExpr this@(IntExpr _                              _) = win $ IRValue this Type.Int
+crawlExpr      (LetExpr decls body                 token) = crawlLet decls body token
+crawlExpr      (LValueExpr lValue                      _) = crawlLValue crawlExpr False lValue
+crawlExpr this@(NilExpr                                _) = win $ IRValue this Type.Nil
+crawlExpr this@(OpExpr left op right                   _) = crawlOperator left op right this
+crawlExpr      (RecordExpr fields typeName         token) = crawlRecord fields typeName token
+crawlExpr this@(SeqExpr statements                     _) = crawlStatements statements this
+crawlExpr this@(StringExpr _                           _) = win $ IRValue this Type.String
+crawlExpr      (WhileExpr cond body                token) = crawlWhile cond body token
 
 crawlNewArray :: Symbol -> Expr -> Expr -> Token -> Verification IRValue
 crawlNewArray typeName size init token =
@@ -131,15 +131,15 @@ crawlCall name argExprs token =
             let funcM  = Map.lookup addr funcs
             maybe (fail BadInternalState token) win funcM
 
-crawlFor :: Symbol -> Bool -> Expr -> Expr -> Expr -> Token -> Verification IRValue
-crawlFor varName isEscape lowerB upperB body token =
+crawlFor :: Symbol -> Expr -> Expr -> Expr -> Token -> Verification IRValue
+crawlFor varName lowerB upperB body token =
   stackFrame $ do
     wasInFor <- gets isInFor
     modify $ \s -> s { isInFor = True }
 
     lowerV <- crawlExpr lowerB
     upperV <- crawlExpr upperB
-    varV   <- crawlDecls crawlExpr $ NE.singleton $ VariableDecl $ VarDecl varName True Nothing lowerB token
+    varV   <- crawlDecls crawlExpr $ NE.singleton $ VariableDecl $ VarDecl varName Nothing lowerB token
 
     (Scope _ addr) :| _ <- gets scopes
     let varAddr          = NamedVarAddress varName addr
@@ -155,7 +155,7 @@ crawlFor varName isEscape lowerB upperB body token =
       ( lowerType, Type.Int , lowerExpr.token) `typeErrorOr` do
       ( upperType, Type.Int , upperExpr.token) `typeErrorOr` do
         (bodyType, Type.Unit,  bodyExpr.token) `typeErrorOr` do
-          win $ IRValue (ForExpr varName isEscape lowerB upperB body token) bodyType
+          win $ IRValue (ForExpr varName lowerB upperB body token) bodyType
 
 crawlIf :: Expr -> Expr -> Maybe Expr -> Token -> Verification IRValue
 crawlIf antecedent consequent alternativeM token =

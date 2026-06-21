@@ -42,13 +42,13 @@ convertType (AST.RecordType fields) =
     (checkedsV *> pairsV) `failOrM` (Record &> withUniqueID &> (map Success))
   where
     checkForDupes :: ([Token], Set Symbol) -> Field -> ([Token], Set Symbol)
-    checkForDupes (baddies, names) (Field name _ _ token _) =
+    checkForDupes (baddies, names) (Field name _ token _) =
       if name `Set.member` names then
         (token : baddies, name `Set.insert` names)
       else
         (        baddies, name `Set.insert` names)
 
-    withType (Field name _ typeName _ typeToken) =
+    withType (Field name typeName _ typeToken) =
       (lookupTypeAddrOfSym typeToken typeName) <&> (map (name, ))
 
 declareType :: Symbol -> Type -> Token -> Verification ()

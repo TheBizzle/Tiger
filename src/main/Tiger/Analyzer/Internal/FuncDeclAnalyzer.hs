@@ -43,7 +43,7 @@ crawlFuncDecl crawlExpr (FuncDecl funcName fields typePairM body token) =
   where
     compose (z, b, tok) = Compose $ (map (z, ) <$> lookupTypeOfSym tok b)
 
-    toTriple (Field name _ typ _ typeToken) = (name, typ, typeToken)
+    toTriple (Field name typ _ typeToken) = (name, typ, typeToken)
 
 synthesizeLet :: Expr -> [Field] -> Verification Expr
 synthesizeLet body fields =
@@ -53,9 +53,9 @@ synthesizeLet body fields =
   where
     makeLet decls = win $ LetExpr decls body body.token
 
-    makeDecl (Field name _ typeName nameToken typeToken) =
+    makeDecl (Field name typeName nameToken typeToken) =
       (lookupTypeOfSym typeToken typeName) `andIfValidMV` (initialValue nameToken) `andIfValidMV` (
-        \initExpr -> win $ VariableDecl $ VarDecl name True (Just (typeName, typeToken)) initExpr nameToken
+        \initExpr -> win $ VariableDecl $ VarDecl name (Just (typeName, typeToken)) initExpr nameToken
         )
 
 initialValue :: Token -> Type -> Verification Expr

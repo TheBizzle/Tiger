@@ -38,7 +38,6 @@ data Expr
              , token    :: Token
              }
   | ForExpr { forVar    :: Symbol
-            , forEscape :: Bool
             , forLow    :: Expr
             , forHigh   :: Expr
             , forBody   :: Expr
@@ -103,7 +102,6 @@ data Decl
 
 data VarDecl
   = VarDecl { varName   :: Symbol
-            , varEscape :: Bool
             , varTypeM  :: Maybe (Symbol, Token)
             , varInit   :: Expr
             , varToken  :: Token
@@ -126,7 +124,6 @@ data Type
 -- Used in record types and param lists
 data Field
   = Field { fieldName      :: Symbol
-          , fieldEscape    :: Bool
           , fieldType      :: Symbol
           , fieldNameToken :: Token
           , fieldTypeToken :: Token

@@ -25,7 +25,7 @@ import Data.Map qualified as Map
 
 
 crawlVarDecl :: (Expr -> Verification IRValue) -> VarDecl -> Verification (Symbol, Type)
-crawlVarDecl crawlExpr (VarDecl varName _ typeTokenM initial token) =
+crawlVarDecl crawlExpr (VarDecl varName typeTokenM initial token) =
   do
     initV         <- crawlExpr initial
     let initTypeV  = map irvType initV

@@ -102,7 +102,7 @@ crawlBatch crawlExpr (FuncBatch funcDecls) =
             succeed
           )
 
-    lookupField (Field name _ tName _ tToken) =
+    lookupField (Field name tName _ tToken) =
       (lookupTypeOfSym tToken tName) `andIfValidMV` ((name, ) &> win)
 
 crawlBatch _ (TypeBatch typeDecls) =
@@ -125,7 +125,7 @@ crawlBatch crawlExpr (VarBatch varDecls) =
       )
     )
   where
-    storePreVar (VarDecl name _ typeM _ _) =
+    storePreVar (VarDecl name typeM _ _) =
         (retTypeFromM typeM) `andIfValidMV` (
           \typ -> do
             let prevar = PreVar typ

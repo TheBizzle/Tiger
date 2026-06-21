@@ -48,7 +48,7 @@ evalDecl _ (FunctionDecl (FuncDecl name params _ body _)) =
     modify $ \s -> s { functions = Map.insert addr func s.functions }
     win ()
 
-evalDecl evaluExpr (VariableDecl (VarDecl name _ _ initialExpr _)) =
+evalDecl evaluExpr (VariableDecl (VarDecl name _ initialExpr _)) =
   (evaluExpr initialExpr) `andIfValidMVNoB` (
     \initial -> do
       scaddr   <- gets lastScopeAddr

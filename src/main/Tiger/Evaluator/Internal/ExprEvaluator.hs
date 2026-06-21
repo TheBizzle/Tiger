@@ -53,21 +53,21 @@ import Tiger.Evaluator.Internal.Type qualified as Type
 
 
 evalExpr :: Expr -> Evaluation ControlFlow
-evalExpr      (ArrayExpr _ size init                    _) = evalNewArray size init
-evalExpr      (AssignExpr lValue rValue                 _) = evalAssign lValue rValue
-evalExpr      (BreakExpr                            token) = evalBreak token
-evalExpr      (CallExpr name args                   token) = evalCall name args token
-evalExpr      (ForExpr varName _ lowerB upperB body token) = evalFor varName lowerB upperB body token
-evalExpr      (IfExpr ante conseq alt                   _) = evalIf ante conseq alt
-evalExpr      (IntExpr n                                _) = winCF $ TInt n
-evalExpr      (LetExpr decls body                       _) = evalLet decls body
-evalExpr      (LValueExpr lValue                    token) = evalLValue evalExpr lValue token
-evalExpr      (NilExpr                                  _) = winCF TNil
-evalExpr this@(OpExpr left op right                     _) = evalOperator left op right this
-evalExpr      (RecordExpr fields typeName               _) = evalRecord fields typeName
-evalExpr      (SeqExpr statements                       _) = evalStatements statements
-evalExpr      (StringExpr s                             _) = winCF $ TString s
-evalExpr      (WhileExpr cond body                      _) = evalWhile cond body
+evalExpr      (ArrayExpr _ size init                  _) = evalNewArray size init
+evalExpr      (AssignExpr lValue rValue               _) = evalAssign lValue rValue
+evalExpr      (BreakExpr                          token) = evalBreak token
+evalExpr      (CallExpr name args                 token) = evalCall name args token
+evalExpr      (ForExpr varName lowerB upperB body token) = evalFor varName lowerB upperB body token
+evalExpr      (IfExpr ante conseq alt                 _) = evalIf ante conseq alt
+evalExpr      (IntExpr n                              _) = winCF $ TInt n
+evalExpr      (LetExpr decls body                     _) = evalLet decls body
+evalExpr      (LValueExpr lValue                  token) = evalLValue evalExpr lValue token
+evalExpr      (NilExpr                                _) = winCF TNil
+evalExpr this@(OpExpr left op right                   _) = evalOperator left op right this
+evalExpr      (RecordExpr fields typeName             _) = evalRecord fields typeName
+evalExpr      (SeqExpr statements                     _) = evalStatements statements
+evalExpr      (StringExpr s                           _) = winCF $ TString s
+evalExpr      (WhileExpr cond body                    _) = evalWhile cond body
 
 evalExprNoB :: Expr -> Evaluation Value
 evalExprNoB expr = (evalExpr expr) `andIfValidMVNoB` win
@@ -119,7 +119,7 @@ evalCall name argExprs token =
         (    Nothing, UserDefinedBody  expr) -> evalExpr expr
         (Just argsNE,                     _) -> do
           let pairs = NE.zip (NE.fromList paramNames) argsNE
-          let decls = map (\(aName, aVal) -> VariableDecl $ VarDecl aName True Nothing aVal token) pairs
+          let decls = map (\(aName, aVal) -> VariableDecl $ VarDecl aName Nothing aVal token) pairs
           case body of
             PrimitiveBody   pbody -> evalLetBase decls $ Left pbody
             UserDefinedBody  expr -> evalLet     decls expr
@@ -140,7 +140,7 @@ evalFor varName lowerB upperB body token =
     upperV <- evalInt upperB
     flattenVM $ runFor <$> lowerV <*> upperV
   where
-    synthesizeLet name i = NE.singleton $ VariableDecl $ VarDecl name True Nothing (IntExpr i token) token
+    synthesizeLet name i = NE.singleton $ VariableDecl $ VarDecl name Nothing (IntExpr i token) token
 
     runFor :: Int -> Int -> Evaluation ControlFlow
     runFor i upper =

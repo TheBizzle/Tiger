@@ -115,7 +115,7 @@ expr
 
   | While expr Do expr { AST.WhileExpr $2 $4 $1 }
 
-  | For IDENT ':=' expr To expr Do expr { let name = ident $2 in AST.ForExpr name True $4 $6 $8 $1 }
+  | For IDENT ':=' expr To expr Do expr { let name = ident $2 in AST.ForExpr name $4 $6 $8 $1 }
 
   | Break { AST.BreakExpr $1 }
 
@@ -179,12 +179,12 @@ typ
 
 vardecl :: { AST.VarDecl }
 vardecl
-  : Var IDENT           ':=' expr { let name = ident $2 in AST.VarDecl name True Nothing $4 $2 }
+  : Var IDENT           ':=' expr { let name = ident $2 in AST.VarDecl name Nothing $4 $2 }
   | Var IDENT ':' IDENT ':=' expr {
       let {
         varName  = ident $2;
         typeName = ident $4;
-      } in AST.VarDecl varName True (Just (typeName, $4)) $6 $2
+      } in AST.VarDecl varName (Just (typeName, $4)) $6 $2
     }
 
 funcdecl :: { AST.FuncDecl }
@@ -210,13 +210,13 @@ fieldlist
       let {
         fName    = ident $1;
         typeName = ident $3;
-      } in [AST.Field fName True typeName $1 $3]
+      } in [AST.Field fName typeName $1 $3]
     }
   | fieldlist ',' IDENT ':' IDENT {
       let {
         fName    = ident $3;
         typeName = ident $5;
-      } in $1 <> [AST.Field fName True typeName $3 $5]
+      } in $1 <> [AST.Field fName typeName $3 $5]
     }
 
 {type ParseState a = MaybeT (State [ParserError]) a
