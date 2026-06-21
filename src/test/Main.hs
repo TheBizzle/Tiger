@@ -125,6 +125,7 @@ allTests =
   , fail  "test64" "Error: `for` with non-`Unit` body"                                               $ (AError $ TypeMismatch Type.Unit Type.Int) :| []
   , pass  "test65" "Forward type reference in record type"                                           $ Just $ TString ""
   , pass  "test66" "Forward nominal type reference"                                                  $ Just $ TString ""
+  , fail  "test67" "Error: Test bed for checking escape analysis behavior"                           $ (AError $ NoSuchVariable) :| []
   , pass  "queens" "8-queens benchmark program"                                                      $ Just $ TUnit
   , pass  "merge"  "merge-sort benchmark program"                                                    $ Nothing -- Reads user input
   ]

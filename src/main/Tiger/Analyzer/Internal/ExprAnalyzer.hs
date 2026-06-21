@@ -1,4 +1,4 @@
-module Tiger.Analyzer.Internal.ExprAnalyzer(crawlAST, crawlExpr) where
+module Tiger.Analyzer.Internal.ExprAnalyzer(crawlExpr) where
 
 import Control.Monad.State(gets, modify)
 
@@ -43,9 +43,6 @@ import Data.Map                     qualified as Map
 import Data.Set                     qualified as Set
 import Tiger.Analyzer.Internal.Type qualified as Type
 
-
-crawlAST :: Expr -> Verification IRValue
-crawlAST expr = crawlExpr expr
 
 crawlExpr :: Expr -> Verification IRValue
 crawlExpr      (ArrayExpr typeName size init       token) = crawlNewArray typeName size init token

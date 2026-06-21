@@ -3,15 +3,16 @@ module Tiger.Analyzer.Internal.Analyzer(analyze) where
 import Tiger.Parser.AST(Expr)
 
 import Tiger.Analyzer.Internal.Address(ScopeAddress(ScopeAddress))
-import Tiger.Analyzer.Internal.ExprAnalyzer(crawlAST)
+import Tiger.Analyzer.Internal.ExprAnalyzer(crawlExpr)
 
 import Tiger.Analyzer.Internal.Common(
     AnalyzerState( AnalyzerState, functions, lastScopeAddr, isInFor, isInWhile, nextUniqueID, protecteds
                  , scopes, types, vars
                  )
-  , Validated
+  , Validated, Verification
   )
 
+import Tiger.Analyzer.Internal.EscapeAnalyzer(findEscapers)
 import Tiger.Analyzer.Internal.IRValue(IRValue)
 import Tiger.Analyzer.Internal.Primitives(primitives)
 import Tiger.Analyzer.Internal.Scope(Environment(Env), Scope(Scope))
@@ -42,3 +43,8 @@ verify expr = evalState (crawlAST expr) initialState
                     , types         = Map.empty
                     , vars          = Map.empty
                     }
+
+crawlAST :: Expr -> Verification IRValue
+crawlAST expr = crawlExpr expr
+  where
+    (_escaperFuncs, _escaperVars) = findEscapers expr

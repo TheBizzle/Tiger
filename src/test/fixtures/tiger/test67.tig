@@ -1,0 +1,13 @@
+/* Simple test for escape analysis.  Should show that `escaper` and `w` both escape (`x` is undefined). */
+let
+  function escaper(a: int): int = a
+  function stayputter(a: int): int = a
+  function staysButPasses(w: int): int =
+    let
+      function badBoy(): int = w
+    in
+      badBoy()
+    end
+in
+  let var y := 5 in x + escaper(y) end
+end
