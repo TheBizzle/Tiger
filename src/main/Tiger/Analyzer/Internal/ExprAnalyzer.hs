@@ -178,7 +178,7 @@ crawlIf antecedent consequent alternativeM token =
 
     buildIf ante conseq altM typ = win $ IRValue (IfExpr ante conseq altM token) typ
 
-crawlLet :: (NonEmpty Decl) -> Expr -> Token -> Verification IRValue
+crawlLet :: NonEmpty Decl -> Expr -> Token -> Verification IRValue
 crawlLet decls body token =
   stackFrame $ do
     declsV <- crawlDecls crawlExpr decls
