@@ -1,6 +1,6 @@
-module Tiger.Evaluator.Internal.Evaluator(eval) where
+module Tiger.Evaluator.Internal.Evaluator(eval, initialState, simpleEval) where
 
-import Control.Monad.State(evalStateT)
+import Control.Monad.State(runStateT)
 
 import Tiger.Parser.AST(Expr)
 
@@ -18,22 +18,26 @@ import Data.List.NonEmpty qualified as NE
 import Data.Map           qualified as Map
 
 
-eval :: Expr -> IO (Evaluated Value)
-eval expr = resultMV <&> unwrapCF
+simpleEval :: Expr -> IO (Evaluated Value)
+simpleEval = eval initialState &> (map fst)
+
+eval :: EvaluatorState -> Expr -> IO (Evaluated Value, EvaluatorState)
+eval state expr = resultMV <&> (mapFst unwrapCF)
   where
-    resultMV = evalStateT (evalExpr expr) initialState
+    resultMV = runStateT (evalExpr expr) state
 
     unwrapCF (Failure        es) = Failure es
     unwrapCF (Success (Break _)) = error "Illegal top-level break"
     unwrapCF (Success (Pure  x)) = Success x
 
+initialState :: EvaluatorState
+initialState =
+  EvaluatorState { functions     = primsState
+                 , lastScopeAddr = ScopeAddress 0
+                 , scopes        = NE.singleton $ Scope env $ ScopeAddress 0
+                 , vars          = Map.empty
+                 }
+  where
     (primsEnv, primsState) = primitives
 
     env = Env primsEnv Map.empty
-
-    initialState =
-      EvaluatorState { functions     = primsState
-                     , lastScopeAddr = ScopeAddress 0
-                     , scopes        = NE.singleton $ Scope env $ ScopeAddress 0
-                     , vars          = Map.empty
-                     }

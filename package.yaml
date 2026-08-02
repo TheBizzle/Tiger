@@ -19,6 +19,8 @@ default-extensions:
 
 dependencies:
   - bizzlelude >= 4.20.2.0.3 && < 4.21
+  - containers
+  - mtl
 
 ghc-options:
   - -Wall

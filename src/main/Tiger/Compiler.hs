@@ -1,4 +1,4 @@
-module Tiger.Compiler(compile, compileForTest) where
+module Tiger.Compiler(compile, compileForTest, Program) where
 
 import Tiger.Lexer.Lexer(lex)
 

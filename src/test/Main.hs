@@ -25,7 +25,7 @@ import Tiger.Analyzer.Internal.Address(TypeAddress(IntAddress, StringAddress))
 import Tiger.Analyzer.Internal.IRValue(IRValue(irvExpr))
 import Tiger.Analyzer.Internal.Type(Type(Array, Named, Record), UniqueID(UniqueID))
 
-import Tiger.Evaluator.Evaluator(eval)
+import Tiger.Evaluator.Evaluator(simpleEval)
 import Tiger.Evaluator.Value(Value(TArray, TInt, TNil, TRecord, TString, TUnit))
 
 import Data.List.NonEmpty           qualified as NE
@@ -170,7 +170,7 @@ makeTest test = testCase (asString $ testName test <> ": " <> desc test) runIt
             (Failure errors, Fail  reasons) -> checkFailureMatch src (NE.toList errors) $ NE.toList reasons
             (Success      _, Pass  Nothing) -> return ()
             (Success actual, Pass expected) -> do
-              valueV <- eval actual.irvExpr
+              valueV <- simpleEval actual.irvExpr
               checkSuccessMatch src expected valueV
         else
           assertFail $ "Fixture file not found: " <> (asText path)
