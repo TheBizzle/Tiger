@@ -14,7 +14,7 @@ This is a Haskell-based implementation of the Tiger (toy) programming language, 
 ## Running
 
 ```sh
-stack build && stack exec tiger
+stack build && stack exec run-tiger
 ```
 
 ## Testing

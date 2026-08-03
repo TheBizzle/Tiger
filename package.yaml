@@ -46,7 +46,7 @@ ghc-options:
   - -O2
 
 executables:
-  tiger:
+  run-tiger:
     source-dirs: app
     main:        Main.hs
     dependencies:
